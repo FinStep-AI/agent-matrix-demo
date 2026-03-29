@@ -194,10 +194,9 @@ body::before {
 }
 
 .card-label {
-    font-size: 12px;
+    font-size: 28px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 4px;
     color: var(--text-muted);
     margin-bottom: 4px;
 }

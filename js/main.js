@@ -464,7 +464,8 @@ function bindAgentTabs() {
                 }
             } else if (pageType === 'people') {
                 state.demoRunning = false;
-                runPeopleDemo();
+                // 手动切tab时重启演示，但先等旧循环退出
+                setTimeout(() => runPeopleDemo(), 100);
             }
         });
     });
@@ -1722,6 +1723,21 @@ async function runFranchiseConversation(index) {
     await sleep(3500);
 }
 
+// People页面：编程方式切tab（不触发事件）
+function switchPeopleTab(agentName) {
+    const page = document.getElementById('peoplePage');
+    if (!page) return;
+    page.querySelectorAll('.agent-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.agent === agentName);
+    });
+    page.querySelectorAll('.agent-content').forEach(c => {
+        c.classList.remove('active');
+    });
+    const target = page.querySelector(`#agent-${agentName}`);
+    if (target) target.classList.add('active');
+    state.currentAgent.people = agentName;
+}
+
 // People页面完整演示
 async function runPeopleDemo() {
     if (state.demoRunning) return;
@@ -1729,10 +1745,7 @@ async function runPeopleDemo() {
 
     while (state.demoRunning && state.isAutoPlaying) {
         // --- 客服Agent阶段：轮播3个场景 ---
-        // 确保切到客服tab
-        const serviceTab = document.querySelector('#peoplePage .agent-tab[data-agent="service"]');
-        const franchiseTab = document.querySelector('#peoplePage .agent-tab[data-agent="franchise"]');
-        if (serviceTab) serviceTab.click();
+        switchPeopleTab('service');
         await sleep(600);
 
         for (let i = 0; i < 3 && state.demoRunning; i++) {
@@ -1745,7 +1758,7 @@ async function runPeopleDemo() {
         if (!state.demoRunning) break;
 
         // --- 加盟咨询Agent阶段：轮播2个场景 ---
-        if (franchiseTab) franchiseTab.click();
+        switchPeopleTab('franchise');
         await sleep(600);
 
         for (let i = 0; i < 2 && state.demoRunning; i++) {
