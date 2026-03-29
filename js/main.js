@@ -330,11 +330,68 @@ const state = {
     currentScene: 'bar',
     currentSceneIndex: 0,
     isAutoPlaying: true,
-    demoRunning: false
+    demoRunning: false,
+    fullDemoRunning: false,
+    fullDemoId: 0,
+    speedMultiplier: 1,
+    isMuted: false,
+    currentStep: 0,
+    totalSteps: 12,
+    isPaused: false,
 };
 
 const CONFIG = {
     inspectionSceneOrder: ['bar', 'equipment', 'staff', 'store', 'wash']
+};
+
+// =========================================
+// 演讲稿配置
+// =========================================
+const NARRATION_SCRIPTS = {
+    opening: {
+        text: '欢迎来到新零售AI Agent全景矩阵。我们将为您展示，AI如何成为连锁零售企业的智能经营操作系统——从客户服务、到门店管理、再到供应链优化，端到端赋能超过53,000家门店的数字化运营。',
+        label: '开场介绍'
+    },
+    people_intro: {
+        text: '首先，让我们进入"人"的场景——客户与员工服务。这是AI与客户直接对话的第一触点。',
+        label: '人 → 场景介绍'
+    },
+    service_demo: {
+        text: '智能客服Agent，基于大语言模型，能够理解复杂的业务咨询，准确回答政策问题、订单查询和运营指引，平均响应时间从45秒降至3秒。',
+        label: '人 → 智能客服'
+    },
+    franchise_demo: {
+        text: '加盟咨询Agent同样采用AI驱动——面对潜在加盟商的投资咨询和政策疑问，提供专业、一致的回答，转化率提升37%。',
+        label: '人 → 加盟咨询'
+    },
+    store_intro: {
+        text: '接下来进入"店"的场景。AI如何让每一家门店都达到标准化运营水平？',
+        label: '店 → 场景介绍'
+    },
+    inspection_demo: {
+        text: '巡检Agent通过计算机视觉，自动识别吧台卫生、设备状态、员工着装等5大场景，每天执行超过32万次AI巡检，让合规率从72%提升至98.6%。',
+        label: '店 → 智能巡检'
+    },
+    chatbi_demo: {
+        text: '数据经营Agent——ChatBI，让店长用自然语言提问，即可获得销售分析、库存预警和经营建议，不再需要复杂的报表系统。',
+        label: '店 → 数据经营'
+    },
+    factory_intro: {
+        text: '最后进入"厂"的场景——供应链是连锁零售的生命线。',
+        label: '厂 → 场景介绍'
+    },
+    material_demo: {
+        text: '物料预测Agent基于时序大模型，综合天气、节假日和历史销量，对6大核心物料进行14天滚动预测，准确率达到96.3%，每年减少损耗超过2,400万元。',
+        label: '厂 → 物料预测'
+    },
+    supplychain_demo: {
+        text: '供应链风险监控Agent，实时扫描供应商、物流、库存和品控四大维度——当风险指数突破阈值，自动触发AI调拨预案，将供应中断时间从48小时压缩至4小时。',
+        label: '厂 → 风险监控'
+    },
+    closing: {
+        text: '以上就是AI Agent矩阵的全景演示。六大AI Agent协同运作，覆盖人、店、厂三大核心场景，构建起连锁零售企业的智能经营操作系统。',
+        label: '总结'
+    }
 };
 
 // =========================================
@@ -345,7 +402,7 @@ function init() {
     bindAgentTabs();
     bindSceneItems();
     bindChatBI();
-    bindControlButtons();
+    bindConsoleControls();
     bindFactoryEvents();
     bindInspectionModal();
     animateLandingMetrics();
@@ -383,8 +440,10 @@ function navigateToPage(pageName) {
 
     if (pageName === 'landing') {
         document.getElementById('landingPage').style.display = 'flex';
-        state.isAutoPlaying = false;
-        state.demoRunning = false;
+        if (!state.fullDemoRunning) {
+            state.isAutoPlaying = false;
+            state.demoRunning = false;
+        }
     } else {
         const pageId = pageName + 'Page';
         const page = document.getElementById(pageId);
@@ -1261,48 +1320,77 @@ function addChartStyles() {
 // =========================================
 // 控制按钮
 // =========================================
-function bindControlButtons() {
-    // Store页面
-    const storeAutoBtn = document.getElementById('storeAutoPlayBtn');
-    const storePauseBtn = document.getElementById('storePauseBtn');
+function bindConsoleControls() {
+    const console_el = document.getElementById('demoConsole');
+    const toggle = document.getElementById('consoleToggle');
+    const playBtn = document.getElementById('consolePlayBtn');
+    const pauseBtn = document.getElementById('consolePauseBtn');
+    const stopBtn = document.getElementById('consoleStopBtn');
+    const speedSlider = document.getElementById('consoleSpeedSlider');
+    const speedValue = document.getElementById('consoleSpeedValue');
+    const muteBtn = document.getElementById('consoleMuteBtn');
 
-    if (storeAutoBtn) {
-        storeAutoBtn.addEventListener('click', () => {
-            state.isAutoPlaying = true;
-            storeAutoBtn.classList.add('active');
-            if (storePauseBtn) storePauseBtn.classList.remove('active');
-            startPageDemo('store');
+    if (toggle) {
+        toggle.addEventListener('click', () => {
+            if (console_el.classList.contains('collapsed')) {
+                console_el.classList.remove('collapsed');
+            } else if (!state.fullDemoRunning) {
+                console_el.classList.add('collapsed');
+            } else {
+                console_el.classList.remove('collapsed');
+            }
         });
     }
 
-    if (storePauseBtn) {
-        storePauseBtn.addEventListener('click', () => {
+    if (playBtn) {
+        playBtn.addEventListener('click', () => {
+            if (state.isPaused) {
+                // Resume
+                state.isPaused = false;
+                state.isAutoPlaying = true;
+                playBtn.style.display = 'none';
+                pauseBtn.style.display = '';
+                stopBtn.style.display = '';
+                console_el.classList.add('playing');
+            } else if (!state.fullDemoRunning) {
+                // Start new
+                runFullDemo();
+            }
+        });
+    }
+
+    if (pauseBtn) {
+        pauseBtn.addEventListener('click', () => {
+            state.isPaused = true;
             state.isAutoPlaying = false;
             state.demoRunning = false;
-            storePauseBtn.classList.add('active');
-            if (storeAutoBtn) storeAutoBtn.classList.remove('active');
+            pauseBtn.style.display = 'none';
+            playBtn.style.display = '';
+            console_el.classList.remove('playing');
         });
     }
 
-    // People页面
-    const peopleAutoBtn = document.getElementById('peopleAutoPlayBtn');
-    const peoplePauseBtn = document.getElementById('peoplePauseBtn');
-
-    if (peopleAutoBtn) {
-        peopleAutoBtn.addEventListener('click', () => {
-            state.isAutoPlaying = true;
-            peopleAutoBtn.classList.add('active');
-            if (peoplePauseBtn) peoplePauseBtn.classList.remove('active');
-            startPageDemo('people');
+    if (stopBtn) {
+        stopBtn.addEventListener('click', () => {
+            stopFullDemo();
         });
     }
 
-    if (peoplePauseBtn) {
-        peoplePauseBtn.addEventListener('click', () => {
-            state.isAutoPlaying = false;
-            state.demoRunning = false;
-            peoplePauseBtn.classList.add('active');
-            if (peopleAutoBtn) peopleAutoBtn.classList.remove('active');
+    if (speedSlider) {
+        speedSlider.addEventListener('input', () => {
+            state.speedMultiplier = parseFloat(speedSlider.value);
+            if (speedValue) speedValue.textContent = speedSlider.value + 'x';
+        });
+    }
+
+    if (muteBtn) {
+        muteBtn.addEventListener('click', () => {
+            state.isMuted = !state.isMuted;
+            muteBtn.classList.toggle('muted', state.isMuted);
+            const narration = document.getElementById('narrationAudio');
+            const bgm = document.getElementById('bgMusic');
+            if (narration) narration.muted = state.isMuted;
+            if (bgm) bgm.muted = state.isMuted;
         });
     }
 }
@@ -1337,7 +1425,7 @@ function animateLandingMetrics() {
 // 工具函数
 // =========================================
 function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms / state.speedMultiplier));
 }
 
 function getCurrentTime() {
@@ -1474,28 +1562,6 @@ function bindFactoryEvents() {
                 state.demoRunning = false;
                 runMaterialPrediction(selectedMaterial);
             }
-        });
-    }
-
-    // Factory控制按钮
-    const factoryAutoBtn = document.getElementById('factoryAutoPlayBtn');
-    const factoryPauseBtn = document.getElementById('factoryPauseBtn');
-
-    if (factoryAutoBtn) {
-        factoryAutoBtn.addEventListener('click', () => {
-            state.isAutoPlaying = true;
-            factoryAutoBtn.classList.add('active');
-            if (factoryPauseBtn) factoryPauseBtn.classList.remove('active');
-            runFactoryDemo();
-        });
-    }
-
-    if (factoryPauseBtn) {
-        factoryPauseBtn.addEventListener('click', () => {
-            state.isAutoPlaying = false;
-            state.demoRunning = false;
-            factoryPauseBtn.classList.add('active');
-            if (factoryAutoBtn) factoryAutoBtn.classList.remove('active');
         });
     }
 }
@@ -2224,6 +2290,370 @@ async function runSupplyChainDemo() {
         if (!state.demoRunning) return;
         applyRiskEvent(RISK_EVENTS[i]);
         await sleep(delays[i]);
+    }
+}
+
+// =========================================
+// 统一演示控制台
+// =========================================
+function updateConsoleUI(stepLabel, progress) {
+    const fill = document.getElementById('consoleProgressFill');
+    const text = document.getElementById('consoleProgressText');
+    const label = document.getElementById('consoleStepLabel');
+    if (fill) fill.style.width = progress + '%';
+    if (text) text.textContent = Math.round(progress) + '%';
+    if (label) label.textContent = stepLabel;
+}
+
+function showSubtitle(text) {
+    let el = document.querySelector('.narration-subtitle');
+    if (!el) {
+        el = document.createElement('div');
+        el.className = 'narration-subtitle';
+        document.body.appendChild(el);
+    }
+    el.textContent = text;
+    el.classList.add('visible');
+}
+
+function hideSubtitle() {
+    const el = document.querySelector('.narration-subtitle');
+    if (el) el.classList.remove('visible');
+}
+
+async function playNarration(key) {
+    const script = NARRATION_SCRIPTS[key];
+    if (!script) return;
+
+    updateConsoleUI(script.label, (state.currentStep / state.totalSteps) * 100);
+    showSubtitle(script.text);
+
+    if (!state.isMuted) {
+        try {
+            const resp = await fetch('http://localhost:3001/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: script.text,
+                    role: 'narrator',
+                    lang: 'zh',
+                    speed: 12
+                })
+            });
+            if (resp.ok) {
+                const blob = await resp.blob();
+                const url = URL.createObjectURL(blob);
+                const audio = document.getElementById('narrationAudio');
+                if (audio) {
+                    audio.src = url;
+                    audio.muted = state.isMuted;
+                    await audio.play().catch(() => {});
+                    // Wait for audio to finish or timeout
+                    await new Promise(resolve => {
+                        const onEnd = () => { audio.removeEventListener('ended', onEnd); resolve(); };
+                        audio.addEventListener('ended', onEnd);
+                        // Fallback timeout based on text length
+                        setTimeout(resolve, Math.max(script.text.length * 180 / state.speedMultiplier, 3000));
+                    });
+                    URL.revokeObjectURL(url);
+                }
+            } else {
+                // TTS unavailable, just wait based on text length
+                await sleep(script.text.length * 150);
+            }
+        } catch (e) {
+            // TTS server not running, just show subtitle and wait
+            await sleep(script.text.length * 150);
+        }
+    } else {
+        // Muted mode: wait proportional to text
+        await sleep(script.text.length * 150);
+    }
+
+    await sleep(500);
+    hideSubtitle();
+}
+
+function stopFullDemo() {
+    state.fullDemoRunning = false;
+    state.fullDemoId++;
+    state.demoRunning = false;
+    state.isAutoPlaying = false;
+    state.isPaused = false;
+    state.currentStep = 0;
+
+    const console_el = document.getElementById('demoConsole');
+    const playBtn = document.getElementById('consolePlayBtn');
+    const pauseBtn = document.getElementById('consolePauseBtn');
+    const stopBtn = document.getElementById('consoleStopBtn');
+
+    if (console_el) console_el.classList.remove('playing');
+    if (playBtn) playBtn.style.display = '';
+    if (pauseBtn) pauseBtn.style.display = 'none';
+    if (stopBtn) stopBtn.style.display = 'none';
+
+    updateConsoleUI('就绪', 0);
+    hideSubtitle();
+
+    // Stop audio
+    const narration = document.getElementById('narrationAudio');
+    const bgm = document.getElementById('bgMusic');
+    if (narration) { narration.pause(); narration.currentTime = 0; }
+    if (bgm) { bgm.pause(); bgm.currentTime = 0; }
+
+    // Remove demo-active highlights
+    document.querySelectorAll('.matrix-card.demo-active').forEach(c => c.classList.remove('demo-active'));
+    document.querySelectorAll('.agent-tab.demo-active').forEach(t => t.classList.remove('demo-active'));
+}
+
+async function waitIfPaused(demoId) {
+    while (state.isPaused && state.fullDemoId === demoId) {
+        await new Promise(r => setTimeout(r, 200));
+    }
+    return state.fullDemoId === demoId && state.fullDemoRunning;
+}
+
+async function runFullDemo() {
+    state.fullDemoId++;
+    const myId = state.fullDemoId;
+    state.fullDemoRunning = true;
+    state.isAutoPlaying = true;
+    state.isPaused = false;
+    state.demoRunning = false;
+    state.currentStep = 0;
+
+    const console_el = document.getElementById('demoConsole');
+    const playBtn = document.getElementById('consolePlayBtn');
+    const pauseBtn = document.getElementById('consolePauseBtn');
+    const stopBtn = document.getElementById('consoleStopBtn');
+
+    console_el.classList.remove('collapsed');
+    console_el.classList.add('playing');
+    if (playBtn) playBtn.style.display = 'none';
+    if (pauseBtn) pauseBtn.style.display = '';
+    if (stopBtn) stopBtn.style.display = '';
+
+    // Helper to check if we should continue
+    const ok = () => state.fullDemoId === myId && state.fullDemoRunning;
+    const step = async () => {
+        state.currentStep++;
+        if (!ok()) return false;
+        if (!(await waitIfPaused(myId))) return false;
+        return true;
+    };
+
+    // LOOP
+    while (ok()) {
+        // ===== STEP 1: Opening on landing =====
+        navigateToPage('landing');
+        await sleep(800);
+        if (!ok()) break;
+
+        state.currentStep = 0;
+        await playNarration('opening');
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // ===== STEP 2-4: People page =====
+        // Highlight people card
+        const peopleCard = document.querySelector('.matrix-card[data-target="people"]');
+        if (peopleCard) peopleCard.classList.add('demo-active');
+        await sleep(1000);
+        if (!ok()) break;
+
+        await playNarration('people_intro');
+        if (!ok()) break;
+
+        // Navigate to people page
+        if (peopleCard) peopleCard.classList.remove('demo-active');
+        navigateToPage('people');
+        await sleep(600);
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // Service Agent demo
+        state.demoRunning = true;
+        const serviceTab = document.querySelector('#peoplePage .agent-tab[data-agent="service"]');
+        if (serviceTab) serviceTab.classList.add('demo-active');
+
+        await playNarration('service_demo');
+        if (!ok()) break;
+
+        // Run 2 service conversations
+        for (let i = 0; i < 2 && ok(); i++) {
+            state.demoRunning = true;
+            await runServiceConversation(SERVICE_CONVERSATIONS[i % SERVICE_CONVERSATIONS.length].tab);
+            await sleep(1500);
+        }
+        if (serviceTab) serviceTab.classList.remove('demo-active');
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // Franchise Agent demo
+        switchPeopleTab('franchise');
+        await sleep(600);
+        const franchiseTab = document.querySelector('#peoplePage .agent-tab[data-agent="franchise"]');
+        if (franchiseTab) franchiseTab.classList.add('demo-active');
+
+        await playNarration('franchise_demo');
+        if (!ok()) break;
+
+        // Run 2 franchise conversations
+        for (let i = 0; i < 2 && ok(); i++) {
+            state.demoRunning = true;
+            await runFranchiseConversation(i % FRANCHISE_CONVERSATIONS.length);
+            await sleep(1500);
+        }
+        if (franchiseTab) franchiseTab.classList.remove('demo-active');
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // ===== STEP 5-7: Store page =====
+        const storeCard = document.querySelector('.matrix-card[data-target="store"]');
+        if (storeCard) storeCard.classList.add('demo-active');
+        navigateToPage('landing');
+        await sleep(600);
+        if (!ok()) break;
+
+        await playNarration('store_intro');
+        if (!ok()) break;
+
+        if (storeCard) storeCard.classList.remove('demo-active');
+        navigateToPage('store');
+        await sleep(600);
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // Inspection Agent demo
+        const inspTab = document.querySelector('#storePage .agent-tab[data-agent="inspection"]');
+        if (inspTab) inspTab.classList.add('demo-active');
+
+        state.demoRunning = true;
+        state.isAutoPlaying = true;
+        resetInspectionUI();
+        await sleep(400);
+
+        await playNarration('inspection_demo');
+        if (!ok()) break;
+
+        // Run inspection demo for ~2 scenes
+        state.demoRunning = true;
+        state.isAutoPlaying = true;
+
+        // Run partial inspection (just the first scene)
+        const origScene = state.currentScene;
+        state.currentScene = CONFIG.inspectionSceneOrder[0];
+        state.currentSceneIndex = 0;
+
+        // Manually trigger one inspection cycle
+        await runUploadPhase();
+        if (!ok()) break;
+        await runAnalysisPhase();
+        if (!ok()) break;
+        await runResultPhase();
+        if (!ok()) break;
+        await sleep(2000);
+
+        if (inspTab) inspTab.classList.remove('demo-active');
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // ChatBI demo
+        const chatbiTab = document.querySelector('#storePage .agent-tab[data-agent="business"]');
+        if (chatbiTab) {
+            chatbiTab.click();
+            await sleep(400);
+            chatbiTab.classList.add('demo-active');
+        }
+
+        await playNarration('chatbi_demo');
+        if (!ok()) break;
+
+        // Run 2 ChatBI questions
+        state.demoRunning = true;
+        for (let i = 0; i < 2 && ok(); i++) {
+            const responses = Object.values(CHATBI_RESPONSES);
+            await simulateChatBIQuestion(responses[i % responses.length]);
+            await sleep(2000);
+        }
+        if (chatbiTab) chatbiTab.classList.remove('demo-active');
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // ===== STEP 8-10: Factory page =====
+        const factoryCard = document.querySelector('.matrix-card[data-target="factory"]');
+        if (factoryCard) factoryCard.classList.add('demo-active');
+        navigateToPage('landing');
+        await sleep(600);
+        if (!ok()) break;
+
+        await playNarration('factory_intro');
+        if (!ok()) break;
+
+        if (factoryCard) factoryCard.classList.remove('demo-active');
+        navigateToPage('factory');
+        await sleep(600);
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // Material Agent demo
+        const matTab = document.querySelector('#factoryPage .agent-tab[data-agent="material"]');
+        if (matTab) matTab.classList.add('demo-active');
+
+        state.demoRunning = true;
+        resetMaterialUI();
+        await sleep(400);
+
+        await playNarration('material_demo');
+        if (!ok()) break;
+
+        // Run material prediction for milk
+        state.demoRunning = true;
+        await runMaterialPrediction('milk');
+        await sleep(3000);
+
+        if (matTab) matTab.classList.remove('demo-active');
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // Supply Chain demo
+        const scTab = document.querySelector('#factoryPage .agent-tab[data-agent="supplychain"]');
+        if (scTab) {
+            scTab.click();
+            await sleep(400);
+            scTab.classList.add('demo-active');
+        }
+
+        state.demoRunning = true;
+
+        await playNarration('supplychain_demo');
+        if (!ok()) break;
+
+        // Run supply chain risk demo
+        state.demoRunning = true;
+        await runSupplyChainDemo();
+        await sleep(2000);
+
+        if (scTab) scTab.classList.remove('demo-active');
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // ===== STEP 11: Closing =====
+        navigateToPage('landing');
+        await sleep(600);
+        if (!ok()) break;
+
+        await playNarration('closing');
+        if (!ok()) break;
+        if (!(await step())) break;
+
+        // Pause before looping
+        await sleep(3000);
+    }
+
+    // Cleanup when done
+    if (state.fullDemoId === myId) {
+        stopFullDemo();
     }
 }
 
