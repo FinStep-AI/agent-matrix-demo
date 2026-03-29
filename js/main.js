@@ -623,6 +623,21 @@ function switchLanguage(lang) {
 
     applyI18nToDOM();
 
+    // 刷新 ChatBI 动态内容
+    resetChatBI();
+
+    // 刷新 insight cards
+    const insightCards = document.getElementById('insightCards');
+    if (insightCards) {
+        const cards = insightCards.querySelectorAll('.insight-title, .insight-text');
+        cards.forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (key) {
+                el.textContent = t(key);
+            }
+        });
+    }
+
     // 更新语言切换按钮
     const btn = document.getElementById('langToggle');
     if (btn) {
@@ -630,10 +645,6 @@ function switchLanguage(lang) {
         const activeSpan = btn.querySelector(lang === 'en' ? '.lang-en' : '.lang-zh');
         if (activeSpan) activeSpan.classList.add('active');
     }
-
-    // 更新音频路径前缀
-    // audio/opening.mp3 → audio/en/opening.mp3 (英文时)
-    // 不改变当前播放，下次 playNarration 时自动使用新路径
 }
 
 /**
@@ -1248,7 +1259,7 @@ function setScenarioTab(scenario) {
 }
 
 function updateQuickQuestions(scenario) {
-    const quickQuestionsMap = {
+    const zhMap = {
         sales: [
             { text: '销售预警', question: '哪些门店本周销售下滑需要关注？' },
             { text: '品类分析', question: '哪个品类最近销量增长最快？' },
@@ -1265,6 +1276,9 @@ function updateQuickQuestions(scenario) {
             { text: '对标分析', question: '与同区域标杆门店对比差距' }
         ]
     };
+
+    const enMap = (typeof I18N_DATA !== 'undefined' && I18N_DATA.CHATBI_DYNAMIC) ? I18N_DATA.CHATBI_DYNAMIC.quickQuestionsMap : null;
+    const quickQuestionsMap = (getLang() === 'en' && enMap) ? enMap : zhMap;
 
     const container = document.getElementById('quickQuestions');
     if (!container) return;
@@ -1284,11 +1298,13 @@ function updateQuickQuestions(scenario) {
 async function runChatBIDemo() {
     resetChatBI();
 
-    const scenarios = [
+    const zhScenarios = [
         { question: '哪些门店本周销售下滑需要关注？', scenario: 'sales' },
         { question: '分析华东区门店的人效情况，如何优化排班？', scenario: 'efficiency' },
         { question: '最近有哪些经营异常需要关注？', scenario: 'diagnosis' }
     ];
+    const enScenarios = (typeof I18N_DATA !== 'undefined' && I18N_DATA.CHATBI_DYNAMIC) ? I18N_DATA.CHATBI_DYNAMIC.demoScenarios : null;
+    const scenarios = (getLang() === 'en' && enScenarios) ? enScenarios : zhScenarios;
 
     for (let i = 0; i < scenarios.length; i++) {
         if (!state.isAutoPlaying || state.currentPage !== 'store' || state.currentAgent.store !== 'business') break;
@@ -1310,28 +1326,30 @@ function resetChatBI() {
     const messagesContainer = document.getElementById('chatMessages');
     if (!messagesContainer) return;
 
+    const greeting = t('chatbi.greeting');
+
     messagesContainer.innerHTML = `
         <div class="message bot">
             <div class="message-avatar">${SVG_ICONS.bot}</div>
-            <div class="message-content">
-                您好！我是经营助手Agent。我可以帮您：<br>
-                • 分析销售数据，发现增长机会<br>
-                • 提升人效，优化排班方案<br>
-                • 经营诊断，发现异常并给出建议<br>
-                请问有什么需要分析的？
-            </div>
+            <div class="message-content">${greeting}</div>
         </div>
     `;
 
     const chartContainer = document.getElementById('chartContainer');
     if (chartContainer) {
+        const placeholder = t('chatbi.chart.placeholder');
         chartContainer.innerHTML = `
             <div class="chart-placeholder">
                 <div class="chart-icon">${SVG_ICONS.chart}</div>
-                <span>选择问题查看数据可视化</span>
+                <span>${placeholder}</span>
             </div>
         `;
     }
+
+    // Refresh quick questions for current language
+    const activeTab = document.querySelector('.scenario-tab.active');
+    const scenario = activeTab ? activeTab.dataset.scenario : 'sales';
+    updateQuickQuestions(scenario);
 }
 
 async function simulateChatBIQuestion(question) {
@@ -1355,7 +1373,7 @@ async function simulateChatBIQuestion(question) {
         <div class="message-avatar">${SVG_ICONS.bot}</div>
         <div class="message-content">
             <div class="typing-indicator"><span></span><span></span><span></span></div>
-            <span style="color: var(--text-secondary); font-size: 11px;">正在分析数据...</span>
+            <span style="color: var(--text-secondary); font-size: 11px;">${t('chatbi.analyzing')}</span>
         </div>
     `;
     messagesContainer.appendChild(thinkingMsg);
@@ -1383,12 +1401,25 @@ async function simulateChatBIQuestion(question) {
 }
 
 function getDefaultResponse(question) {
-    return {
-        response: `<p>正在为您分析「${question}」...</p>
+    const isEn = getLang() === 'en';
+    const dyn = (isEn && typeof I18N_DATA !== 'undefined' && I18N_DATA.CHATBI_DYNAMIC) ? I18N_DATA.CHATBI_DYNAMIC.defaultResponse : null;
+    const insightDyn = (isEn && typeof I18N_DATA !== 'undefined' && I18N_DATA.CHATBI_DYNAMIC) ? I18N_DATA.CHATBI_DYNAMIC.defaultInsight : null;
+
+    const response = dyn
+        ? `<p>${dyn.prefix} "${question}" ${dyn.suffix}</p>
+            <p style="margin-top: 8px; font-size: 12px;">${dyn.records} <strong>12,450</strong></p>
+            <p style="color: var(--accent-blue); margin-top: 8px; font-size: 12px;">${SVG_ICONS.bulb} ${dyn.done}</p>`
+        : `<p>正在为您分析「${question}」...</p>
             <p style="margin-top: 8px; font-size: 12px;">已检索相关数据 <strong>12,450</strong> 条</p>
-            <p style="color: var(--accent-blue); margin-top: 8px; font-size: 12px;">${SVG_ICONS.bulb} 分析完成，请查看右侧可视化结果</p>`,
+            <p style="color: var(--accent-blue); margin-top: 8px; font-size: 12px;">${SVG_ICONS.bulb} 分析完成，请查看右侧可视化结果</p>`;
+
+    const insightTitle = insightDyn ? insightDyn.title : 'AI分析';
+    const insightText = insightDyn ? insightDyn.text : '数据分析完成，已生成可视化报告';
+
+    return {
+        response,
         chart: 'default',
-        insight: { type: 'highlight', icon: SVG_ICONS.barchart, title: 'AI分析', text: '数据分析完成，已生成可视化报告' }
+        insight: { type: 'highlight', icon: SVG_ICONS.barchart, title: insightTitle, text: insightText }
     };
 }
 
@@ -1399,60 +1430,81 @@ function showChatBIChart(chartType) {
 
     addChartStyles();
 
+    const isEn = getLang() === 'en';
+    const cc = (isEn && typeof I18N_DATA !== 'undefined' && I18N_DATA.CHART_CONFIGS) ? I18N_DATA.CHART_CONFIGS : null;
+
+    // Store names
+    const sn = (cc && cc.salesWarning && cc.salesWarning.labels) ? cc.salesWarning.labels : ['杭州西湖', '苏州观前', '南京新街口', '上海静安', '无锡中心'];
+    // Supply labels
+    const sl = (cc && cc.supplyForecast && cc.supplyForecast.labels) ? cc.supplyForecast.labels : ['需求 2,850kg', '库存 1,920kg', '缺口 930kg'];
+    const st = (cc && cc.supplyForecast && cc.supplyForecast.timeline) ? cc.supplyForecast.timeline : [
+        { time: '16:00', event: '下单补货' }, { time: '22:00', event: '仓库发货' }, { time: '08:00', event: '门店到货' }
+    ];
+    // Efficiency zones
+    const ez = (cc && cc.efficiency && cc.efficiency.zones) ? cc.efficiency.zones : [
+        { label: '高效区', range: '>20杯/人时' }, { label: '达标区', range: '16-20杯/人时' }, { label: '待改进', range: '<16杯/人时' }
+    ];
+    const es = (cc && cc.efficiency && cc.efficiency.suggestions) ? cc.efficiency.suggestions : ['高峰+2人', '低谷-1人', '月省¥28K'];
+    // Diagnosis dims
+    const dd = (cc && cc.diagnosis && cc.diagnosis.dims) ? cc.diagnosis.dims : ['销售指标', '人效指标', '服务质量', '客户满意度'];
+    const drl = (cc && cc.diagnosis && cc.diagnosis.ringLabel) ? cc.diagnosis.ringLabel : '健康度';
+    // Default labels
+    const dl = (cc && cc.defaultChart && cc.defaultChart.labels) ? cc.defaultChart.labels : ['华东', '华南', '华北', '西南'];
+
     const charts = {
         salesWarning: {
-            title: '门店销售趋势对比',
+            title: (cc && cc.salesWarning) ? cc.salesWarning.title : '门店销售趋势对比',
             html: `
                 <div class="chart-content">
                     <div class="line-chart">
                         <div class="chart-lines">
-                            <div class="line-group"><span class="line-label">杭州西湖</span><div class="line-track"><div class="line-fill warning" style="--progress: 65%;"></div></div><span class="line-value warning">↓18.2%</span></div>
-                            <div class="line-group"><span class="line-label">苏州观前</span><div class="line-track"><div class="line-fill warning" style="--progress: 70%;"></div></div><span class="line-value warning">↓16.5%</span></div>
-                            <div class="line-group"><span class="line-label">南京新街口</span><div class="line-track"><div class="line-fill warning" style="--progress: 72%;"></div></div><span class="line-value warning">↓15.8%</span></div>
-                            <div class="line-group"><span class="line-label">上海静安</span><div class="line-track"><div class="line-fill success" style="--progress: 95%;"></div></div><span class="line-value success">↑8.3%</span></div>
-                            <div class="line-group"><span class="line-label">无锡中心</span><div class="line-track"><div class="line-fill success" style="--progress: 88%;"></div></div><span class="line-value success">↑5.1%</span></div>
+                            <div class="line-group"><span class="line-label">${sn[0]}</span><div class="line-track"><div class="line-fill warning" style="--progress: 65%;"></div></div><span class="line-value warning">↓18.2%</span></div>
+                            <div class="line-group"><span class="line-label">${sn[1]}</span><div class="line-track"><div class="line-fill warning" style="--progress: 70%;"></div></div><span class="line-value warning">↓16.5%</span></div>
+                            <div class="line-group"><span class="line-label">${sn[2]}</span><div class="line-track"><div class="line-fill warning" style="--progress: 72%;"></div></div><span class="line-value warning">↓15.8%</span></div>
+                            <div class="line-group"><span class="line-label">${sn[3]}</span><div class="line-track"><div class="line-fill success" style="--progress: 95%;"></div></div><span class="line-value success">↑8.3%</span></div>
+                            <div class="line-group"><span class="line-label">${sn[4]}</span><div class="line-track"><div class="line-fill success" style="--progress: 88%;"></div></div><span class="line-value success">↑5.1%</span></div>
                         </div>
                     </div>
                 </div>`
         },
         supplyForecast: {
-            title: '物料需求预测 vs 库存',
+            title: (cc && cc.supplyForecast) ? cc.supplyForecast.title : '物料需求预测 vs 库存',
             html: `
                 <div class="chart-content">
                     <div class="supply-chart">
                         <div class="supply-visual">
-                            <div class="supply-bar"><div class="bar-segment demand" style="height: 85%;"><span class="segment-label">需求 2,850kg</span></div></div>
-                            <div class="supply-bar"><div class="bar-segment stock" style="height: 57%;"><span class="segment-label">库存 1,920kg</span></div></div>
-                            <div class="supply-bar"><div class="bar-segment gap" style="height: 28%;"><span class="segment-label">缺口 930kg</span></div></div>
+                            <div class="supply-bar"><div class="bar-segment demand" style="height: 85%;"><span class="segment-label">${sl[0]}</span></div></div>
+                            <div class="supply-bar"><div class="bar-segment stock" style="height: 57%;"><span class="segment-label">${sl[1]}</span></div></div>
+                            <div class="supply-bar"><div class="bar-segment gap" style="height: 28%;"><span class="segment-label">${sl[2]}</span></div></div>
                         </div>
                         <div class="supply-timeline">
-                            <div class="timeline-item"><span class="time">16:00</span><span class="event">下单补货</span></div>
-                            <div class="timeline-item"><span class="time">22:00</span><span class="event">仓库发货</span></div>
-                            <div class="timeline-item active"><span class="time">08:00</span><span class="event">门店到货</span></div>
+                            <div class="timeline-item"><span class="time">${st[0].time}</span><span class="event">${st[0].event}</span></div>
+                            <div class="timeline-item"><span class="time">${st[1].time}</span><span class="event">${st[1].event}</span></div>
+                            <div class="timeline-item active"><span class="time">${st[2].time}</span><span class="event">${st[2].event}</span></div>
                         </div>
                     </div>
                 </div>`
         },
         efficiency: {
-            title: '门店人效分布',
+            title: (cc && cc.efficiency) ? cc.efficiency.title : '门店人效分布',
             html: `
                 <div class="chart-content">
                     <div class="efficiency-chart">
                         <div class="eff-distribution">
-                            <div class="eff-zone high"><span class="zone-label">高效区</span><span class="zone-range">>20杯/人时</span><span class="zone-count">8家</span></div>
-                            <div class="eff-zone normal"><span class="zone-label">达标区</span><span class="zone-range">16-20杯/人时</span><span class="zone-count">18家</span></div>
-                            <div class="eff-zone low"><span class="zone-label">待改进</span><span class="zone-range"><16杯/人时</span><span class="zone-count">6家</span></div>
+                            <div class="eff-zone high"><span class="zone-label">${ez[0].label}</span><span class="zone-range">${ez[0].range}</span><span class="zone-count">8</span></div>
+                            <div class="eff-zone normal"><span class="zone-label">${ez[1].label}</span><span class="zone-range">${ez[1].range}</span><span class="zone-count">18</span></div>
+                            <div class="eff-zone low"><span class="zone-label">${ez[2].label}</span><span class="zone-range">${ez[2].range}</span><span class="zone-count">6</span></div>
                         </div>
                         <div class="eff-suggestion">
-                            <div class="suggest-item"><span class="suggest-icon">${SVG_ICONS.clock}</span><span class="suggest-text">高峰+2人</span></div>
-                            <div class="suggest-item"><span class="suggest-icon">${SVG_ICONS.trendDown}</span><span class="suggest-text">低谷-1人</span></div>
-                            <div class="suggest-item highlight"><span class="suggest-icon">${SVG_ICONS.coin}</span><span class="suggest-text">月省¥28K</span></div>
+                            <div class="suggest-item"><span class="suggest-icon">${SVG_ICONS.clock}</span><span class="suggest-text">${es[0]}</span></div>
+                            <div class="suggest-item"><span class="suggest-icon">${SVG_ICONS.trendDown}</span><span class="suggest-text">${es[1]}</span></div>
+                            <div class="suggest-item highlight"><span class="suggest-icon">${SVG_ICONS.coin}</span><span class="suggest-text">${es[2]}</span></div>
                         </div>
                     </div>
                 </div>`
         },
         diagnosis: {
-            title: '经营健康度诊断',
+            title: (cc && cc.diagnosis) ? cc.diagnosis.title : '经营健康度诊断',
             html: `
                 <div class="chart-content">
                     <div class="diagnosis-chart">
@@ -1462,27 +1514,27 @@ function showChatBIChart(chartType) {
                                     <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border-color)" stroke-width="6"/>
                                     <circle cx="50" cy="50" r="42" fill="none" stroke="var(--accent-orange)" stroke-width="6" stroke-dasharray="220 264" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 50 50)"/>
                                     <text x="50" y="46" text-anchor="middle" fill="var(--text-primary)" font-size="22" font-weight="700">87.5</text>
-                                    <text x="50" y="62" text-anchor="middle" fill="var(--text-secondary)" font-size="9">健康度</text>
+                                    <text x="50" y="62" text-anchor="middle" fill="var(--text-secondary)" font-size="9">${drl}</text>
                                 </svg>
                             </div>
                             <div class="score-details">
-                                <div class="score-item"><span class="score-dim">销售指标</span><div class="score-bar"><div class="score-fill" style="width:78%;background:var(--accent-blue)"></div></div><span class="score-val">78</span></div>
-                                <div class="score-item"><span class="score-dim">人效指标</span><div class="score-bar"><div class="score-fill" style="width:85%;background:var(--accent-green)"></div></div><span class="score-val">85</span></div>
-                                <div class="score-item"><span class="score-dim">服务质量</span><div class="score-bar"><div class="score-fill" style="width:91%;background:var(--accent-purple)"></div></div><span class="score-val">91</span></div>
-                                <div class="score-item"><span class="score-dim">客户满意度</span><div class="score-bar"><div class="score-fill" style="width:88%;background:var(--accent-orange)"></div></div><span class="score-val">88</span></div>
+                                <div class="score-item"><span class="score-dim">${dd[0]}</span><div class="score-bar"><div class="score-fill" style="width:78%;background:var(--accent-blue)"></div></div><span class="score-val">78</span></div>
+                                <div class="score-item"><span class="score-dim">${dd[1]}</span><div class="score-bar"><div class="score-fill" style="width:85%;background:var(--accent-green)"></div></div><span class="score-val">85</span></div>
+                                <div class="score-item"><span class="score-dim">${dd[2]}</span><div class="score-bar"><div class="score-fill" style="width:91%;background:var(--accent-purple)"></div></div><span class="score-val">91</span></div>
+                                <div class="score-item"><span class="score-dim">${dd[3]}</span><div class="score-bar"><div class="score-fill" style="width:88%;background:var(--accent-orange)"></div></div><span class="score-val">88</span></div>
                             </div>
                         </div>
                     </div>
                 </div>`
         },
         default: {
-            title: '数据分析结果',
+            title: (cc && cc.defaultChart) ? cc.defaultChart.title : '数据分析结果',
             html: `
                 <div class="chart-bars">
-                    <div class="bar-group"><div class="bar" style="height: 89%; background: linear-gradient(180deg, var(--accent-blue), #2a5299);"></div><span class="bar-label">华东</span></div>
-                    <div class="bar-group"><div class="bar" style="height: 75%; background: linear-gradient(180deg, var(--accent-purple), #6b45a3);"></div><span class="bar-label">华南</span></div>
-                    <div class="bar-group"><div class="bar" style="height: 63%; background: linear-gradient(180deg, var(--accent-green), #2a8a4a);"></div><span class="bar-label">华北</span></div>
-                    <div class="bar-group"><div class="bar" style="height: 48%; background: linear-gradient(180deg, var(--accent-orange), #a67818);"></div><span class="bar-label">西南</span></div>
+                    <div class="bar-group"><div class="bar" style="height: 89%; background: linear-gradient(180deg, var(--accent-blue), #2a5299);"></div><span class="bar-label">${dl[0]}</span></div>
+                    <div class="bar-group"><div class="bar" style="height: 75%; background: linear-gradient(180deg, var(--accent-purple), #6b45a3);"></div><span class="bar-label">${dl[1]}</span></div>
+                    <div class="bar-group"><div class="bar" style="height: 63%; background: linear-gradient(180deg, var(--accent-green), #2a8a4a);"></div><span class="bar-label">${dl[2]}</span></div>
+                    <div class="bar-group"><div class="bar" style="height: 48%; background: linear-gradient(180deg, var(--accent-orange), #a67818);"></div><span class="bar-label">${dl[3]}</span></div>
                 </div>`
         }
     };

@@ -424,10 +424,73 @@ const I18N_DATA = {
     // ChatBI 图表英文内容
     // =========================================
     CHART_CONFIGS: {
-        salesWarning: { title: 'Weekly Store Sales Comparison' },
-        supplyForecast: { title: 'Lemon Demand & Supply Forecast' },
-        efficiency: { title: 'Store Efficiency Ranking' },
-        diagnosis: { title: 'Business Health Dashboard' },
-        defaultChart: { title: 'Data Overview' }
+        salesWarning: {
+            title: 'Weekly Store Sales Comparison',
+            labels: ['Hangzhou West Lake', 'Suzhou Guanqian', 'Nanjing Xinjiekou', 'Shanghai Jing\'an', 'Wuxi Center']
+        },
+        supplyForecast: {
+            title: 'Lemon Demand & Supply Forecast',
+            labels: ['Demand 2,850kg', 'Stock 1,920kg', 'Gap 930kg'],
+            timeline: [
+                { time: '16:00', event: 'Place Order' },
+                { time: '22:00', event: 'Warehouse Ship' },
+                { time: '08:00', event: 'Store Delivery' }
+            ]
+        },
+        efficiency: {
+            title: 'Store Efficiency Distribution',
+            zones: [
+                { label: 'High Efficiency', range: '>20 cups/hr' },
+                { label: 'On Target', range: '16-20 cups/hr' },
+                { label: 'Needs Improvement', range: '<16 cups/hr' }
+            ],
+            suggestions: ['Peak +2 staff', 'Off-peak -1 staff', 'Save ¥28K/mo']
+        },
+        diagnosis: {
+            title: 'Business Health Dashboard',
+            ringLabel: 'Health',
+            dims: ['Sales Index', 'Efficiency Index', 'Service Quality', 'Customer Satisfaction']
+        },
+        defaultChart: {
+            title: 'Data Analysis Results',
+            labels: ['East China', 'South China', 'North China', 'Southwest']
+        }
+    },
+
+    // =========================================
+    // ChatBI 动态文本
+    // =========================================
+    CHATBI_DYNAMIC: {
+        analyzing: 'Analyzing data...',
+        chartPlaceholder: 'Select a question to view data visualization',
+        defaultResponse: {
+            prefix: 'Analyzing',
+            suffix: 'for you...',
+            records: 'Retrieved relevant data',
+            done: 'Analysis complete, see visualization on the right'
+        },
+        defaultInsight: { title: 'AI Analysis', text: 'Data analysis complete, report generated' },
+        quickQuestionsMap: {
+            sales: [
+                { text: 'Sales Alert', question: 'Which stores had declining sales this week?' },
+                { text: 'Category', question: 'Which product category has the fastest growth recently?' },
+                { text: 'Peak Hours', question: 'What are the peak sales hours for stores?' }
+            ],
+            efficiency: [
+                { text: 'Efficiency', question: 'Analyze East China store efficiency and optimize scheduling' },
+                { text: 'Scheduling', question: 'How to optimize scheduling during peak hours?' },
+                { text: 'Training', question: 'Which stores need focused new staff training?' }
+            ],
+            diagnosis: [
+                { text: 'Anomalies', question: 'What business anomalies need attention recently?' },
+                { text: 'Suggestions', question: 'Provide business improvement suggestions for this week' },
+                { text: 'Benchmark', question: 'Compare with benchmark stores in the same region' }
+            ]
+        },
+        demoScenarios: [
+            { question: 'Which stores had declining sales this week?', scenario: 'sales' },
+            { question: 'Analyze East China store efficiency and optimize scheduling', scenario: 'efficiency' },
+            { question: 'What business anomalies need attention recently?', scenario: 'diagnosis' }
+        ]
     }
 };
