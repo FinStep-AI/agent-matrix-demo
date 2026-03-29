@@ -1376,51 +1376,81 @@ function addSVGDefs() {
 const MATERIAL_CONFIG = {
     milk: {
         name: '牛奶',
-        demandTotal: '19,230kg',
+        demandTotal: '38,460kg',
         priceAvg: '¥11.8/kg',
         priceTrend: '↗ +5%',
-        inventoryWarning: '⚠ D4库存低于安全线',
-        suggestion: `<strong>市场背景：</strong>2026年Q1原料奶收购价持续走低，行业处于产能调整期，蒙牛等头部企业毛利率创39.9%历史新高，但终端乳制品需求回暖信号明显。<br><br><strong>采购建议：</strong>当前牛奶库存预计<strong>4月1日</strong>跌破安全线(800kg)，建议在<strong>3月31日前</strong>向区域供应商下单补货<strong>1,200kg</strong>。鉴于原料奶价格仍在下行通道，可争取<strong>¥11.2/kg</strong>的批量采购价(较当前降3.6%)，预计节省紧急调货费用<strong>¥3,500</strong>，同时避免缺货导致的销售损失约<strong>¥8,200</strong>。<br><br><strong>风险提示：</strong>清明假期(4/4-4/6)需求预计上浮15%，建议额外预留200kg安全库存。`
+        inventoryWarning: '⚠ D7库存低于安全线',
+        suggestion: `<strong>市场背景：</strong>2026年Q1原料奶收购价持续走低，行业处于产能调整期，蒙牛等头部企业毛利率创39.9%历史新高，但终端乳制品需求回暖信号明显。<br><br><strong>采购建议：</strong>当前牛奶库存预计<strong>4月5日</strong>跌破安全线(800kg)，建议在<strong>4月3日前</strong>向区域供应商下单补货<strong>2,400kg</strong>。鉴于原料奶价格仍在下行通道，可争取<strong>¥11.2/kg</strong>的批量采购价(较当前降3.6%)，预计节省紧急调货费用<strong>¥6,800</strong>，同时避免因缺货导致的销售损失约<strong>¥15,600</strong>。<br><br><strong>风险提示：</strong>清明假期(4/4-4/6)需求预计上浮15%，建议额外预留400kg安全库存。`,
+        chartData: {
+            demand: { unit: 'kg', yLabels: ['3,200', '3,000', '2,800', '2,600', '2,400', '2,200'], yMax: 3200, yMin: 2200, values: [2750, 2840, 2920, 2870, 2680, 2770, 2800, 2950, 3050, 2880, 2720, 2810, 2900, 3100] },
+            price: { unit: '¥/kg', yLabels: ['¥14.0', '¥13.0', '¥12.0', '¥11.0', '¥10.0', '¥9.0'], yMax: 14, yMin: 9, values: [11.5, 11.8, 11.6, 12.0, 12.2, 12.4, 12.6, 12.3, 12.5, 12.8, 12.6, 12.9, 13.1, 13.0], color: 'green' },
+            inventory: { unit: 'kg', yLabels: ['2,400', '2,000', '1,600', '1,200', '800', '400'], yMax: 2400, yMin: 400, safetyLine: 800, safetyLabel: '安全线 800kg', values: [1850, 1580, 1280, 1020, 820, 580, 420, 350, 520, 780, 1100, 950, 720, 500] }
+        }
     },
     lemon: {
         name: '柠檬',
-        demandTotal: '15,680kg',
+        demandTotal: '22,350kg',
         priceAvg: '¥8.5/kg',
         priceTrend: '↘ -3%',
         inventoryWarning: '✓ 库存充足',
-        suggestion: `<strong>市场背景：</strong>2026年茶饮市场规模超3,600亿元，柠檬茶品类增速15.8%。当前为柠檬应季供应期，四川安岳、云南产区集中上市，鲜果供应量同比增加12%，价格呈季节性走低。<br><br><strong>采购建议：</strong>当前库存充足，价格处于年度低位区间且仍有下探空间。建议<strong>延迟至4月3日</strong>再批量采购，预计届时价格可降至<strong>¥8.0/kg</strong>，单次采购节省<strong>¥2,100</strong>。可同时锁定一批浓缩柠檬汁(保质期长)，以备夏季旺季备货。<br><br><strong>品控提示：</strong>近期部分产区反映降雨偏多，注意验收时关注果皮完整度和含水率。`
+        suggestion: `<strong>市场背景：</strong>2026年茶饮市场规模超3,600亿元，柠檬茶品类增速15.8%。当前为柠檬应季供应期，四川安岳、云南产区集中上市，鲜果供应量同比增加12%，价格呈季节性走低。<br><br><strong>采购建议：</strong>当前库存充足，价格处于年度低位区间且仍有下探空间。建议<strong>延迟至4月5日</strong>再批量采购，预计届时价格可降至<strong>¥7.8/kg</strong>，单次采购节省<strong>¥4,200</strong>。可同时锁定一批浓缩柠檬汁(保质期长)，以备夏季旺季备货。<br><br><strong>品控提示：</strong>近期部分产区反映降雨偏多，注意验收时关注果皮完整度和含水率。`,
+        chartData: {
+            demand: { unit: 'kg', yLabels: ['2,200', '2,000', '1,800', '1,600', '1,400', '1,200'], yMax: 2200, yMin: 1200, values: [1580, 1620, 1750, 1680, 1520, 1610, 1590, 1720, 1840, 1900, 1780, 1650, 1700, 1560] },
+            price: { unit: '¥/kg', yLabels: ['¥10.0', '¥9.5', '¥9.0', '¥8.5', '¥8.0', '¥7.5'], yMax: 10, yMin: 7.5, values: [8.8, 8.6, 8.5, 8.4, 8.3, 8.2, 8.1, 8.0, 7.9, 7.8, 7.9, 8.0, 7.8, 7.7], color: 'green' },
+            inventory: { unit: 'kg', yLabels: ['3,000', '2,500', '2,000', '1,500', '1,000', '500'], yMax: 3000, yMin: 500, safetyLine: 1000, safetyLabel: '安全线 1,000kg', values: [2650, 2420, 2180, 1950, 1780, 1600, 1450, 1320, 1480, 1650, 1520, 1380, 1250, 1150] }
+        }
     },
     sugar: {
         name: '糖浆',
-        demandTotal: '8,450L',
+        demandTotal: '16,900L',
         priceAvg: '¥15.2/L',
         priceTrend: '→ 持平',
         inventoryWarning: '✓ 正常',
-        suggestion: `<strong>市场背景：</strong>国内白砂糖现货价维持在5,445元/吨附近，周跌幅仅0.15%，价格波动极小。国内糖产量预计超1,000万吨，供应充足。国际原糖跌破15美分/磅关口，进口成本持续下降。<br><br><strong>采购建议：</strong>糖浆需求稳定，价格平稳运行。建议维持当前采购节奏（每周2批次、每次600L），无需提前囤货。若果糖供应商提供<strong>季度锁价合同</strong>，可考虑签约，当前价格处于近两年中低位区间，锁价风险较低。<br><br><strong>替代方案：</strong>可评估赤藓糖醇替代方案，响应"减糖"趋势，部分门店已试点零卡糖浆SKU。`
+        suggestion: `<strong>市场背景：</strong>国内白砂糖现货价维持在5,445元/吨附近，周跌幅仅0.15%，价格波动极小。国内糖产量预计超1,000万吨，供应充足。国际原糖跌破15美分/磅关口，进口成本持续下降。<br><br><strong>采购建议：</strong>糖浆需求稳定，价格平稳运行。建议维持当前采购节奏（每周2批次、每次600L），无需提前囤货。若果糖供应商提供<strong>季度锁价合同</strong>，可考虑签约，当前价格处于近两年中低位区间，锁价风险较低。<br><br><strong>替代方案：</strong>可评估赤藓糖醇替代方案，响应"减糖"趋势，部分门店已试点零卡糖浆SKU。`,
+        chartData: {
+            demand: { unit: 'L', yLabels: ['1,500', '1,300', '1,100', '900', '700', '500'], yMax: 1500, yMin: 500, values: [1180, 1210, 1240, 1200, 1190, 1220, 1230, 1250, 1210, 1190, 1200, 1220, 1240, 1260] },
+            price: { unit: '¥/L', yLabels: ['¥17.0', '¥16.0', '¥15.0', '¥14.0', '¥13.0', '¥12.0'], yMax: 17, yMin: 12, values: [15.2, 15.1, 15.2, 15.3, 15.2, 15.1, 15.2, 15.2, 15.3, 15.2, 15.1, 15.2, 15.3, 15.2], color: 'green' },
+            inventory: { unit: 'L', yLabels: ['6,000', '5,000', '4,000', '3,000', '2,000', '1,000'], yMax: 6000, yMin: 1000, safetyLine: 2000, safetyLabel: '安全线 2,000L', values: [5200, 4800, 4400, 4050, 3700, 3350, 3050, 3800, 4500, 4100, 3750, 3400, 3100, 2800] }
+        }
     },
     tea: {
         name: '茶叶',
-        demandTotal: '3,200kg',
+        demandTotal: '4,480kg',
         priceAvg: '¥85/kg',
         priceTrend: '↗ +8%',
         inventoryWarning: '⚠ 价格持续上涨',
-        suggestion: `<strong>市场背景：</strong>2026年春茶产季全面开启，各产区明前茶陆续上市。今年春茶价格与去年基本持平，但优质原叶茶(用于茶饮门店)需求增长显著，部分热门产区已出现抢购。自动化加工产线投产助力产能，但短期内对价格抑制有限。<br><br><strong>采购建议：</strong>茶叶价格已连续3周上涨，预计4月中旬达到阶段性高点。强烈建议<strong>立即锁定采购</strong>红茶(滇红/祁红)<strong>500kg</strong>、绿茶<strong>200kg</strong>、乌龙茶<strong>100kg</strong>，锁定当前均价¥85/kg，预计可避免后续涨价损失<strong>¥5,440</strong>。<br><br><strong>供应链建议：</strong>与产地直采合作社建立长期合作关系，绕过中间商环节可降低8-12%采购成本。`
+        suggestion: `<strong>市场背景：</strong>2026年春茶产季全面开启，各产区明前茶陆续上市。今年春茶价格与去年基本持平，但优质原叶茶(用于茶饮门店)需求增长显著，部分热门产区已出现抢购。自动化加工产线投产助力产能，但短期内对价格抑制有限。<br><br><strong>采购建议：</strong>茶叶价格已连续3周上涨，预计4月中旬达到阶段性高点。强烈建议<strong>立即锁定采购</strong>红茶(滇红/祁红)<strong>500kg</strong>、绿茶<strong>200kg</strong>、乌龙茶<strong>100kg</strong>，锁定当前均价¥85/kg，预计可避免后续涨价损失<strong>¥5,440</strong>。<br><br><strong>供应链建议：</strong>与产地直采合作社建立长期合作关系，绕过中间商环节可降低8-12%采购成本。`,
+        chartData: {
+            demand: { unit: 'kg', yLabels: ['420', '380', '340', '300', '260', '220'], yMax: 420, yMin: 220, values: [310, 325, 340, 330, 305, 320, 315, 345, 360, 350, 335, 310, 325, 340] },
+            price: { unit: '¥/kg', yLabels: ['¥100', '¥95', '¥90', '¥85', '¥80', '¥75'], yMax: 100, yMin: 75, values: [82, 83.5, 85, 86, 87.5, 88, 89.5, 90, 91, 92, 91.5, 93, 94, 95], color: 'green' },
+            inventory: { unit: 'kg', yLabels: ['1,200', '1,000', '800', '600', '400', '200'], yMax: 1200, yMin: 200, safetyLine: 400, safetyLabel: '安全线 400kg', values: [980, 870, 760, 650, 560, 480, 420, 380, 520, 680, 600, 510, 430, 370] }
+        }
     },
     cup: {
         name: '杯具',
-        demandTotal: '125,000个',
+        demandTotal: '250,000个',
         priceAvg: '¥0.35/个',
         priceTrend: '↘ -2%',
         inventoryWarning: '✓ 正常',
-        suggestion: `<strong>市场背景：</strong>一次性杯具及包材市场供应充足，PP/PET原料价格稳中有降。环保政策推动下，可降解材料渗透率持续提升，PLA杯具价格较去年下降约15%，逐步接近传统材料成本线。<br><br><strong>采购建议：</strong>当前杯/盖/吸管库存充裕，按现有消耗速度可维持12天。建议保持<strong>每周一次</strong>的补货节奏。如尚未切换可降解材料，建议在下一采购周期试点<strong>PLA冷饮杯</strong>（差价已缩小至¥0.03/个），兼顾成本与品牌ESG形象。<br><br><strong>包装升级：</strong>Q2可考虑联名款杯套设计，配合AIGC营销模块的IP素材产出。`
+        suggestion: `<strong>市场背景：</strong>一次性杯具及包材市场供应充足，PP/PET原料价格稳中有降。环保政策推动下，可降解材料渗透率持续提升，PLA杯具价格较去年下降约15%，逐步接近传统材料成本线。<br><br><strong>采购建议：</strong>当前杯/盖/吸管库存充裕，按现有消耗速度可维持12天。建议保持<strong>每周一次</strong>的补货节奏。如尚未切换可降解材料，建议在下一采购周期试点<strong>PLA冷饮杯</strong>（差价已缩小至¥0.03/个），兼顾成本与品牌ESG形象。<br><br><strong>包装升级：</strong>Q2可考虑联名款杯套设计，配合AIGC营销模块的IP素材产出。`,
+        chartData: {
+            demand: { unit: '个', yLabels: ['22,000', '20,000', '18,000', '16,000', '14,000', '12,000'], yMax: 22000, yMin: 12000, values: [17800, 18200, 18500, 17900, 17200, 17600, 17400, 18100, 18800, 19200, 18600, 17800, 18000, 17500] },
+            price: { unit: '¥/个', yLabels: ['¥0.42', '¥0.40', '¥0.38', '¥0.36', '¥0.34', '¥0.32'], yMax: 0.42, yMin: 0.32, values: [0.36, 0.36, 0.35, 0.35, 0.35, 0.34, 0.34, 0.35, 0.34, 0.34, 0.34, 0.33, 0.33, 0.33], color: 'green' },
+            inventory: { unit: '个', yLabels: ['300K', '250K', '200K', '150K', '100K', '50K'], yMax: 300000, yMin: 50000, safetyLine: 100000, safetyLabel: '安全线 100K', values: [265000, 248000, 230000, 212000, 195000, 178000, 162000, 186000, 210000, 195000, 180000, 165000, 150000, 138000] }
+        }
     },
     ice: {
         name: '冰块',
-        demandTotal: '28,500kg',
+        demandTotal: '57,000kg',
         priceAvg: '¥2.8/kg',
         priceTrend: '↗ +12%',
         inventoryWarning: '⚠ 旺季价格预警',
-        suggestion: `<strong>市场背景：</strong>3月底气温回升明显，冰块需求进入快速爬坡期。近两周采购价已从¥2.5/kg上涨至¥2.8/kg（涨幅12%），预计4月中旬进入旺季后将突破¥3.2/kg。去年同期最高价达¥3.8/kg。制冰产能集中在城郊工业区，配送距离和时效是核心成本变量。<br><br><strong>采购建议：</strong>建议<strong>立即</strong>与2-3家主力制冰厂签订<strong>4-9月旺季供应协议</strong>，锁定均价<strong>¥2.5/kg</strong>（较旺季峰值降34%），6个月累计节省<strong>¥51,300</strong>。同时建议浦东分仓增设<strong>2台储冰柜</strong>（日存量+800kg），缩短配送频次、降低融损率。<br><br><strong>应急预案：</strong>极端高温日应急预留3家备选供应商联系方式，确保日供应量可弹性扩展至35,000kg。`
+        suggestion: `<strong>市场背景：</strong>3月底气温回升明显，冰块需求进入快速爬坡期。近两周采购价已从¥2.5/kg上涨至¥2.8/kg（涨幅12%），预计4月中旬进入旺季后将突破¥3.2/kg。去年同期最高价达¥3.8/kg。制冰产能集中在城郊工业区，配送距离和时效是核心成本变量。<br><br><strong>采购建议：</strong>建议<strong>立即</strong>与2-3家主力制冰厂签订<strong>4-9月旺季供应协议</strong>，锁定均价<strong>¥2.5/kg</strong>（较旺季峰值降34%），6个月累计节省<strong>¥51,300</strong>。同时建议浦东分仓增设<strong>2台储冰柜</strong>（日存量+800kg），缩短配送频次、降低融损率。<br><br><strong>应急预案：</strong>极端高温日应急预留3家备选供应商联系方式，确保日供应量可弹性扩展至70,000kg。`,
+        chartData: {
+            demand: { unit: 'kg', yLabels: ['5,500', '5,000', '4,500', '4,000', '3,500', '3,000'], yMax: 5500, yMin: 3000, values: [3600, 3750, 3900, 4100, 4250, 4400, 4600, 4800, 5000, 4850, 4650, 4500, 4350, 4200] },
+            price: { unit: '¥/kg', yLabels: ['¥4.0', '¥3.6', '¥3.2', '¥2.8', '¥2.4', '¥2.0'], yMax: 4.0, yMin: 2.0, values: [2.8, 2.85, 2.9, 2.95, 3.0, 3.05, 3.1, 3.15, 3.2, 3.25, 3.3, 3.35, 3.4, 3.5], color: 'green' },
+            inventory: { unit: 'kg', yLabels: ['8,000', '6,500', '5,000', '3,500', '2,000', '500'], yMax: 8000, yMin: 500, safetyLine: 2000, safetyLabel: '安全线 2,000kg', values: [6800, 6200, 5600, 5000, 4400, 3800, 3300, 4200, 5100, 4500, 3900, 3400, 2900, 2500] }
+        }
     }
 };
 
@@ -1500,10 +1530,6 @@ async function runFactoryDemo() {
     await runMaterialDemo();
     if (!state.demoRunning || !state.isAutoPlaying) return;
 
-    // 等待展示结果
-    await sleep(4000);
-    if (!state.demoRunning || !state.isAutoPlaying) return;
-
     // 切换到供应链优化Agent
     if (supplychainTab) {
         supplychainTab.classList.add('active');
@@ -1531,21 +1557,30 @@ async function runFactoryDemo() {
     }
 }
 
-// 物料预测演示
+// 物料预测演示 - 循环展示多种物料
+const MATERIAL_DEMO_ORDER = ['milk', 'tea', 'ice'];
+let materialDemoIndex = 0;
+
 async function runMaterialDemo() {
-    // 选择牛奶
-    const milkItem = document.querySelector('.material-item[data-material="milk"]');
-    if (milkItem) {
+    const materialKey = MATERIAL_DEMO_ORDER[materialDemoIndex % MATERIAL_DEMO_ORDER.length];
+    materialDemoIndex++;
+
+    // 选中对应物料
+    const targetItem = document.querySelector(`.material-item[data-material="${materialKey}"]`);
+    if (targetItem) {
         document.querySelectorAll('.material-item').forEach(i => i.classList.remove('selected'));
-        milkItem.classList.add('selected');
-        selectedMaterial = 'milk';
+        targetItem.classList.add('selected');
+        selectedMaterial = materialKey;
     }
 
     await sleep(800);
     if (!state.demoRunning) return;
 
     // 开始预测
-    await runMaterialPrediction('milk');
+    await runMaterialPrediction(materialKey);
+
+    // 等待展示图表动画完成和阅读时间
+    await sleep(6000);
 }
 
 // 执行物料预测分析
@@ -1607,14 +1642,8 @@ async function runMaterialPrediction(material) {
     if (inventoryWarning) inventoryWarning.textContent = config.inventoryWarning;
     if (suggestion) suggestion.innerHTML = config.suggestion;
 
-    // 重新触发SVG动画(通过克隆替换)
-    document.querySelectorAll('.forecast-chart-large .chart-canvas').forEach(canvas => {
-        const svg = canvas.querySelector('svg');
-        if (svg) {
-            const clone = svg.cloneNode(true);
-            svg.parentNode.replaceChild(clone, svg);
-        }
-    });
+    // 动态生成14天预测图表
+    drawForecastCharts(material);
 }
 
 // 重置物料预测UI
@@ -1632,6 +1661,138 @@ function resetMaterialUI() {
     // 取消选中
     document.querySelectorAll('.material-item').forEach(i => i.classList.remove('selected'));
     selectedMaterial = null;
+}
+
+// 动态生成14天预测折线图
+function drawForecastCharts(material) {
+    const config = MATERIAL_CONFIG[material];
+    if (!config || !config.chartData) return;
+
+    const cd = config.chartData;
+    const n = 14;
+    const today = new Date();
+    const dates = [];
+    for (let i = 0; i < n; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() + i);
+        dates.push(`${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`);
+    }
+
+    // 图表画布参数
+    const vw = 700, vh = 180;
+    const xL = 65, xR = 680, yT = 15, yB = 145;
+    const xStep = (xR - xL) / (n - 1);
+
+    function valToY(val, yMax, yMin) {
+        return yB - ((val - yMin) / (yMax - yMin)) * (yB - yT);
+    }
+
+    function buildSVG(chartType, data, gradientId, lineClass, pointClass, labelClass, lineColor, areaClass) {
+        const { unit, yLabels, yMax, yMin, values, safetyLine, safetyLabel } = data;
+        let svg = '';
+
+        // Gradient
+        const gColor = chartType === 'price' ? '#3fb950' : chartType === 'inventory' ? '#a371f7' : '#58a6ff';
+        svg += `<defs><linearGradient id="${gradientId}" x1="0%" y1="0%" x2="0%" y2="100%">`;
+        svg += `<stop offset="0%" style="stop-color:${gColor};stop-opacity:0.25"/>`;
+        svg += `<stop offset="100%" style="stop-color:${gColor};stop-opacity:0.02"/>`;
+        svg += `</linearGradient></defs>`;
+
+        // Axes
+        svg += `<line x1="${xL}" y1="${yT}" x2="${xL}" y2="${yB}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+        svg += `<line x1="${xL}" y1="${yB}" x2="${xR}" y2="${yB}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+
+        // Horizontal grid + Y labels
+        const yGridCount = yLabels.length;
+        for (let i = 0; i < yGridCount; i++) {
+            const gy = yT + (i / (yGridCount - 1)) * (yB - yT);
+            svg += `<line x1="${xL}" y1="${gy}" x2="${xR}" y2="${gy}" class="grid-line-lg"/>`;
+            svg += `<text x="${xL - 5}" y="${gy + 4}" class="axis-label-lg" text-anchor="end">${yLabels[i]}</text>`;
+            svg += `<line x1="${xL - 3}" y1="${gy}" x2="${xL}" y2="${gy}" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>`;
+        }
+        svg += `<text x="${xL - 5}" y="${yB + 10}" class="axis-label-lg" text-anchor="end">${unit}</text>`;
+
+        // Vertical grid + X labels (every 2 days to avoid crowding)
+        for (let i = 0; i < n; i++) {
+            const x = xL + i * xStep;
+            if (i > 0) svg += `<line x1="${x}" y1="${yT}" x2="${x}" y2="${yB}" class="grid-line-lg"/>`;
+            if (i % 2 === 0 || i === n - 1) {
+                svg += `<text x="${x}" y="${yB + 17}" class="axis-label-lg date-label" text-anchor="middle">${dates[i]}</text>`;
+            }
+        }
+
+        // Today marker
+        const todayX = xL;
+        svg += `<line x1="${todayX}" y1="${yT}" x2="${todayX}" y2="${yB}" stroke="${gColor}" stroke-width="1" stroke-dasharray="4 3" opacity="0.5"/>`;
+        svg += `<text x="${todayX}" y="${yB + 28}" class="axis-label-lg today-label" text-anchor="middle">今日</text>`;
+
+        // Safety line for inventory
+        if (safetyLine !== undefined) {
+            const sy = valToY(safetyLine, yMax, yMin);
+            svg += `<line x1="${xL}" y1="${sy}" x2="${xR}" y2="${sy}" class="safety-line-lg"/>`;
+            svg += `<text x="${xR + 2}" y="${sy + 3}" class="safety-label-lg">${safetyLabel}</text>`;
+        }
+
+        // Build points
+        let polyPts = '', areaPts = '';
+        const points = [];
+        for (let i = 0; i < n; i++) {
+            const x = xL + i * xStep;
+            const y = valToY(values[i], yMax, yMin);
+            points.push({ x, y, val: values[i] });
+            polyPts += `${x},${y} `;
+            areaPts += `${x},${y} `;
+        }
+
+        // Area
+        svg += `<path class="chart-area ${areaClass}" d="M${points[0].x},${points[0].y} ${areaPts.trim().split(' ').slice(1).map(p => 'L' + p).join(' ')} L${points[n - 1].x},${yB} L${points[0].x},${yB} Z"/>`;
+
+        // Line
+        svg += `<polyline class="chart-line-lg ${lineClass}" points="${polyPts.trim()}"/>`;
+
+        // Points + labels
+        for (let i = 0; i < n; i++) {
+            const p = points[i];
+            let isWarning = chartType === 'inventory' && safetyLine !== undefined && values[i] <= safetyLine * 1.1;
+            let ptClass = `chart-point-lg ${pointClass}${isWarning ? ' warning-pt' : ''}`;
+            let lblClass = `point-label-lg ${labelClass}${isWarning ? ' warning-label' : ''}`;
+            let r = isWarning ? 5 : 4;
+            let formatted = typeof values[i] === 'number' && values[i] < 100 ? values[i].toFixed(1) : Math.round(values[i]).toLocaleString();
+            // Only show label every 2 points to avoid crowding in 14-day
+            if (i % 2 === 0 || i === n - 1 || isWarning) {
+                svg += `<circle class="${ptClass}" cx="${p.x}" cy="${p.y}" r="${r}" style="animation-delay:${0.3 + i * 0.12}s"/>`;
+                svg += `<text x="${p.x}" y="${p.y - 7}" class="${lblClass}" text-anchor="middle" style="animation-delay:${0.4 + i * 0.12}s">${formatted}</text>`;
+            } else {
+                svg += `<circle class="${ptClass}" cx="${p.x}" cy="${p.y}" r="${r}" style="animation-delay:${0.3 + i * 0.12}s"/>`;
+            }
+        }
+
+        return svg;
+    }
+
+    // Demand chart
+    const demandCanvas = document.getElementById('demandChart');
+    if (demandCanvas) {
+        demandCanvas.innerHTML = `<svg viewBox="0 0 700 180" class="chart-svg-lg" preserveAspectRatio="xMidYMid meet">` +
+            buildSVG('demand', cd.demand, 'demandGradient', 'demand-line-lg', 'demand-pt', '', '#58a6ff', 'demand-area') +
+            `</svg>`;
+    }
+
+    // Price chart
+    const priceCanvas = document.getElementById('priceChart');
+    if (priceCanvas) {
+        priceCanvas.innerHTML = `<svg viewBox="0 0 700 180" class="chart-svg-lg" preserveAspectRatio="xMidYMid meet">` +
+            buildSVG('price', cd.price, 'priceGradient', 'price-line-lg', 'price-pt', 'price-label', '#3fb950', 'price-area') +
+            `</svg>`;
+    }
+
+    // Inventory chart
+    const inventoryCanvas = document.getElementById('inventoryChart');
+    if (inventoryCanvas) {
+        inventoryCanvas.innerHTML = `<svg viewBox="0 0 700 180" class="chart-svg-lg" preserveAspectRatio="xMidYMid meet">` +
+            buildSVG('inventory', cd.inventory, 'inventoryGradient', 'inventory-line-lg', 'inventory-pt', 'inv-label', '#a371f7', 'inventory-area') +
+            `</svg>`;
+    }
 }
 
 // =========================================
