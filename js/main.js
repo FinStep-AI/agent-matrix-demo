@@ -2561,16 +2561,16 @@ async function runFullDemo() {
         state.isAutoPlaying = true;
 
         // Run partial inspection (just the first scene)
-        const origScene = state.currentScene;
         state.currentScene = CONFIG.inspectionSceneOrder[0];
         state.currentSceneIndex = 0;
+        const inspConfig = SCENE_CONFIG[state.currentScene];
 
         // Manually trigger one inspection cycle
-        await runUploadPhase();
+        await runUploadPhase(inspConfig);
         if (!ok()) break;
-        await runAnalysisPhase();
+        await runAnalysisPhase(inspConfig);
         if (!ok()) break;
-        await runResultPhase();
+        await runResultPhase(inspConfig);
         if (!ok()) break;
         await sleep(2000);
 
