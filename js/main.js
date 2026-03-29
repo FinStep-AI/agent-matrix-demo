@@ -1744,27 +1744,23 @@ async function runPeopleDemo() {
     state.demoRunning = true;
 
     while (state.demoRunning && state.isAutoPlaying) {
-        // --- 客服Agent阶段：轮播3个场景 ---
+        // --- 客服Agent阶段：全部场景展示完 ---
         switchPeopleTab('service');
         await sleep(600);
 
-        for (let i = 0; i < 3 && state.demoRunning; i++) {
-            const key = SERVICE_TAB_ORDER[serviceTabIndex % SERVICE_TAB_ORDER.length];
-            await runServiceConversation(key);
-            serviceTabIndex++;
+        for (let i = 0; i < SERVICE_TAB_ORDER.length && state.demoRunning; i++) {
+            await runServiceConversation(SERVICE_TAB_ORDER[i]);
             if (!state.demoRunning) break;
         }
 
         if (!state.demoRunning) break;
 
-        // --- 加盟咨询Agent阶段：轮播2个场景 ---
+        // --- 再切到加盟咨询Agent：全部场景展示完 ---
         switchPeopleTab('franchise');
         await sleep(600);
 
-        for (let i = 0; i < 2 && state.demoRunning; i++) {
-            const idx = franchiseConvoIndex % FRANCHISE_CONVERSATIONS.length;
-            await runFranchiseConversation(idx);
-            franchiseConvoIndex++;
+        for (let i = 0; i < FRANCHISE_CONVERSATIONS.length && state.demoRunning; i++) {
+            await runFranchiseConversation(i);
             if (!state.demoRunning) break;
         }
     }
