@@ -2355,6 +2355,8 @@ async function playNarration(key) {
     // 尝试TTS播放（无论是否静音都获取音频，静音时仅不播放）
     let audioPlayed = false;
     try {
+        const controller = new AbortController();
+        const fetchTimeout = setTimeout(() => controller.abort(), 3000);
         const resp = await fetch('http://localhost:3001/api/tts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2363,8 +2365,10 @@ async function playNarration(key) {
                 role: 'narrator',
                 lang: 'zh',
                 speed: 12
-            })
+            }),
+            signal: controller.signal
         });
+        clearTimeout(fetchTimeout);
         if (resp.ok && !state.isMuted) {
             const blob = await resp.blob();
             const url = URL.createObjectURL(blob);
@@ -2516,9 +2520,10 @@ async function runFullDemo() {
         if (!ok()) break;
 
         // Run 2 service conversations
+        const serviceKeys = Object.keys(SERVICE_CONVERSATIONS);
         for (let i = 0; i < 2 && ok(); i++) {
             state.demoRunning = true;
-            await runServiceConversation(SERVICE_CONVERSATIONS[i % SERVICE_CONVERSATIONS.length].tab);
+            await runServiceConversation(serviceKeys[i % serviceKeys.length]);
             await sleep(1500);
         }
         if (serviceTab) serviceTab.classList.remove('demo-active');
