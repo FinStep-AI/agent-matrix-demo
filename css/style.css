@@ -3974,3 +3974,44 @@ body::before {
 .narration-subtitle.visible {
     opacity: 1;
 }
+
+/* =========================================
+   Language Toggle Button
+   ========================================= */
+.lang-toggle {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 5px 12px;
+    cursor: pointer;
+    z-index: 100;
+    transition: background 0.2s, border-color 0.2s;
+}
+.lang-toggle:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(88, 166, 255, 0.4);
+}
+.lang-toggle .lang-zh,
+.lang-toggle .lang-en {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
+    transition: color 0.2s;
+    line-height: 1;
+}
+.lang-toggle .lang-zh.active,
+.lang-toggle .lang-en.active {
+    color: #58a6ff;
+    font-weight: 600;
+}
+.lang-toggle .lang-divider {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.2);
+    margin: 0 1px;
+}

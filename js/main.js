@@ -395,6 +395,260 @@ const NARRATION_SCRIPTS = {
 };
 
 // =========================================
+// 国际化 - 语言切换
+// =========================================
+
+// 中文原始数据备份（首次切换时缓存）
+let _zhBackup = null;
+
+function backupZhData() {
+    if (_zhBackup) return;
+    _zhBackup = {
+        SCENE_CONFIG: JSON.parse(JSON.stringify(SCENE_CONFIG)),
+        CHATBI_RESPONSES: JSON.parse(JSON.stringify(CHATBI_RESPONSES)),
+        SERVICE_CONVERSATIONS: JSON.parse(JSON.stringify(SERVICE_CONVERSATIONS)),
+        FRANCHISE_CONVERSATIONS: JSON.parse(JSON.stringify(FRANCHISE_CONVERSATIONS)),
+        NARRATION_SCRIPTS: JSON.parse(JSON.stringify(NARRATION_SCRIPTS)),
+        MATERIAL_CONFIG: JSON.parse(JSON.stringify(MATERIAL_CONFIG)),
+        RISK_EVENTS: JSON.parse(JSON.stringify(RISK_EVENTS)),
+    };
+}
+
+/**
+ * 将 I18N_DATA 中的 SVG 占位符 {iconName} 替换为真实 SVG
+ */
+function resolveIcons(html) {
+    if (typeof html !== 'string') return html;
+    return html.replace(/\{(\w+)\}/g, (_, name) => SVG_ICONS[name] || '');
+}
+
+/**
+ * 深度合并英文数据到目标对象（只覆盖英文数据中提供的字段）
+ */
+function deepMerge(target, source) {
+    for (const key of Object.keys(source)) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && typeof target[key] === 'object') {
+            deepMerge(target[key], source[key]);
+        } else {
+            target[key] = source[key];
+        }
+    }
+}
+
+/**
+ * 应用英文数据到 JS 运行时常量
+ */
+function applyEnglishData() {
+    backupZhData();
+    const D = I18N_DATA;
+
+    // SCENE_CONFIG: 合并文本字段
+    for (const [sceneKey, enScene] of Object.entries(D.SCENE_CONFIG)) {
+        if (!SCENE_CONFIG[sceneKey]) continue;
+        const s = SCENE_CONFIG[sceneKey];
+        if (enScene.name) s.name = enScene.name;
+        if (enScene.store) s.store = enScene.store;
+        if (enScene.analysisSteps) s.analysisSteps = enScene.analysisSteps;
+        if (enScene.detections) {
+            enScene.detections.forEach((d, i) => {
+                if (s.detections[i]) s.detections[i].label = d.label;
+            });
+        }
+        if (enScene.result) {
+            if (enScene.result.desc !== undefined) s.result.desc = enScene.result.desc;
+            if (enScene.result.details) {
+                enScene.result.details.forEach((d, i) => {
+                    if (s.result.details[i]) {
+                        s.result.details[i].label = d.label;
+                        s.result.details[i].value = d.value;
+                    }
+                });
+            }
+        }
+    }
+
+    // CHATBI_RESPONSES: 替换为英文（按key映射）
+    const chatbiKeyMap = { sales: 0, supply: 1, efficiency: 2, diagnosis: 3 };
+    const zhKeys = Object.keys(CHATBI_RESPONSES);
+    for (const [enKey, enData] of Object.entries(D.CHATBI_RESPONSES)) {
+        const idx = chatbiKeyMap[enKey];
+        const zhKey = zhKeys[idx];
+        if (zhKey === undefined) continue;
+        const enQuestion = D.CHATBI_QUESTIONS[enKey];
+        // Build new entry
+        const newEntry = {
+            response: resolveIcons(enData.response),
+            chart: enData.chart,
+            insight: { ...enData.insight, icon: CHATBI_RESPONSES[zhKey]?.insight?.icon || '' }
+        };
+        delete CHATBI_RESPONSES[zhKey];
+        CHATBI_RESPONSES[enQuestion] = newEntry;
+    }
+
+    // SERVICE_CONVERSATIONS
+    for (const [key, enConvo] of Object.entries(D.SERVICE_CONVERSATIONS)) {
+        if (!SERVICE_CONVERSATIONS[key]) continue;
+        SERVICE_CONVERSATIONS[key].question = enConvo.question;
+        SERVICE_CONVERSATIONS[key].answer = resolveIcons(enConvo.answer);
+        SERVICE_CONVERSATIONS[key].related = enConvo.related;
+    }
+
+    // FRANCHISE_CONVERSATIONS
+    if (D.FRANCHISE_CONVERSATIONS) {
+        D.FRANCHISE_CONVERSATIONS.forEach((enConvo, i) => {
+            if (!FRANCHISE_CONVERSATIONS[i]) return;
+            FRANCHISE_CONVERSATIONS[i].question = enConvo.question;
+            FRANCHISE_CONVERSATIONS[i].answer = resolveIcons(enConvo.answer);
+            FRANCHISE_CONVERSATIONS[i].related = enConvo.related;
+        });
+    }
+
+    // NARRATION_SCRIPTS
+    if (D.NARRATION_SCRIPTS) {
+        for (const [key, enScript] of Object.entries(D.NARRATION_SCRIPTS)) {
+            if (!NARRATION_SCRIPTS[key]) continue;
+            NARRATION_SCRIPTS[key].text = enScript.text;
+            NARRATION_SCRIPTS[key].label = enScript.label;
+        }
+    }
+
+    // MATERIAL_CONFIG
+    if (D.MATERIAL_CONFIG) {
+        for (const [key, enMat] of Object.entries(D.MATERIAL_CONFIG)) {
+            if (!MATERIAL_CONFIG[key]) continue;
+            if (enMat.name) MATERIAL_CONFIG[key].name = enMat.name;
+            if (enMat.suggestion) MATERIAL_CONFIG[key].suggestion = enMat.suggestion;
+            if (enMat.predictSteps) MATERIAL_CONFIG[key].predictSteps = enMat.predictSteps;
+        }
+    }
+
+    // RISK_EVENTS
+    if (D.RISK_EVENTS) {
+        D.RISK_EVENTS.forEach((enEvt, i) => {
+            if (!RISK_EVENTS[i]) return;
+            if (enEvt.gaugeLabel) RISK_EVENTS[i].gaugeLabel = enEvt.gaugeLabel;
+            if (enEvt.kpis) deepMerge(RISK_EVENTS[i].kpis, enEvt.kpis);
+            if (enEvt.alerts) {
+                RISK_EVENTS[i].alerts = enEvt.alerts.map((a, j) => ({
+                    ...RISK_EVENTS[i].alerts[j],
+                    ...a
+                }));
+            }
+            if (enEvt.timeline) deepMerge(RISK_EVENTS[i].timeline, enEvt.timeline);
+        });
+    }
+}
+
+/**
+ * 恢复中文数据
+ */
+function restoreZhData() {
+    if (!_zhBackup) return;
+    // Restore SCENE_CONFIG
+    for (const [key, val] of Object.entries(_zhBackup.SCENE_CONFIG)) {
+        SCENE_CONFIG[key] = val;
+    }
+    // Restore CHATBI_RESPONSES
+    for (const k of Object.keys(CHATBI_RESPONSES)) delete CHATBI_RESPONSES[k];
+    for (const [key, val] of Object.entries(_zhBackup.CHATBI_RESPONSES)) {
+        CHATBI_RESPONSES[key] = val;
+    }
+    // Restore SERVICE_CONVERSATIONS
+    for (const [key, val] of Object.entries(_zhBackup.SERVICE_CONVERSATIONS)) {
+        SERVICE_CONVERSATIONS[key] = val;
+    }
+    // Restore FRANCHISE_CONVERSATIONS
+    _zhBackup.FRANCHISE_CONVERSATIONS.forEach((val, i) => {
+        FRANCHISE_CONVERSATIONS[i] = val;
+    });
+    // Restore NARRATION_SCRIPTS
+    for (const [key, val] of Object.entries(_zhBackup.NARRATION_SCRIPTS)) {
+        NARRATION_SCRIPTS[key] = val;
+    }
+    // Restore MATERIAL_CONFIG
+    for (const [key, val] of Object.entries(_zhBackup.MATERIAL_CONFIG)) {
+        MATERIAL_CONFIG[key] = val;
+    }
+    // Restore RISK_EVENTS
+    _zhBackup.RISK_EVENTS.forEach((val, i) => {
+        RISK_EVENTS[i] = val;
+    });
+}
+
+/**
+ * 扫描所有 data-i18n 属性并替换文本
+ */
+function applyI18nToDOM() {
+    // data-i18n → textContent
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const isHtml = el.getAttribute('data-i18n-html') === 'true';
+        const val = t(key);
+        if (val !== key) {
+            if (isHtml) {
+                el.innerHTML = val;
+            } else {
+                el.textContent = val;
+            }
+        }
+    });
+    // data-i18n-placeholder → placeholder
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        const val = t(key);
+        if (val !== key) el.placeholder = val;
+    });
+    // data-i18n-title → title
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        const val = t(key);
+        if (val !== key) el.title = val;
+    });
+    // Update page title
+    document.title = t('page.title.tag');
+}
+
+/**
+ * 切换语言并刷新 UI
+ */
+function switchLanguage(lang) {
+    if (lang === getLang()) return;
+    setLang(lang);
+
+    if (lang === 'en') {
+        applyEnglishData();
+    } else {
+        restoreZhData();
+    }
+
+    applyI18nToDOM();
+
+    // 更新语言切换按钮
+    const btn = document.getElementById('langToggle');
+    if (btn) {
+        btn.querySelectorAll('.lang-zh, .lang-en').forEach(s => s.classList.remove('active'));
+        const activeSpan = btn.querySelector(lang === 'en' ? '.lang-en' : '.lang-zh');
+        if (activeSpan) activeSpan.classList.add('active');
+    }
+
+    // 更新音频路径前缀
+    // audio/opening.mp3 → audio/en/opening.mp3 (英文时)
+    // 不改变当前播放，下次 playNarration 时自动使用新路径
+}
+
+/**
+ * 绑定语言切换按钮
+ */
+function bindLangToggle() {
+    const btn = document.getElementById('langToggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        const newLang = getLang() === 'zh' ? 'en' : 'zh';
+        switchLanguage(newLang);
+    });
+}
+
+// =========================================
 // 初始化
 // =========================================
 function init() {
@@ -405,6 +659,7 @@ function init() {
     bindConsoleControls();
     bindFactoryEvents();
     bindInspectionModal();
+    bindLangToggle();
     animateLandingMetrics();
     addSVGDefs();
 }
@@ -1671,7 +1926,7 @@ async function runMaterialPrediction(material) {
     if (analyzingState) analyzingState.classList.remove('hidden');
 
     // 分析步骤
-    const steps = [
+    const steps = (getLang() === 'en' && I18N_DATA.PREDICT_STEPS) ? I18N_DATA.PREDICT_STEPS : [
         '正在获取历史销售数据...',
         '分析季节性趋势...',
         '计算需求预测模型...',
@@ -2358,7 +2613,7 @@ async function playNarration(key) {
         const audio = document.getElementById('narrationAudio');
         if (audio) {
             try {
-                audio.src = `audio/${key}.mp3`;
+                audio.src = getLang() === 'en' ? `audio/en/${key}.mp3` : `audio/${key}.mp3`;
                 audio.load();
                 audio.muted = false;
                 audio.playbackRate = Math.min(state.speedMultiplier, 2);
