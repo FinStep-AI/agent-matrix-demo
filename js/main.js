@@ -516,10 +516,13 @@ function selectScene(scene) {
 // =========================================
 // 智能巡检演示
 // =========================================
+let inspectionDemoId = 0; // 用于取消旧的巡检演示
+
 async function runInspectionDemo() {
     if (state.demoRunning) return;
     state.demoRunning = true;
 
+    const myId = ++inspectionDemoId;
     const config = SCENE_CONFIG[state.currentScene];
 
     // 严格从空状态开始
@@ -527,23 +530,23 @@ async function runInspectionDemo() {
 
     // 等待一下让用户看到空状态
     await sleep(1500);
-    if (!state.demoRunning) return;
+    if (!state.demoRunning || myId !== inspectionDemoId) return;
 
     // 阶段1: 上传
     await runUploadPhase(config);
-    if (!state.demoRunning) return;
+    if (!state.demoRunning || myId !== inspectionDemoId) return;
 
     // 阶段2: AI分析
     await runAnalysisPhase(config);
-    if (!state.demoRunning) return;
+    if (!state.demoRunning || myId !== inspectionDemoId) return;
 
     // 阶段3: 显示结果
     await runResultPhase(config);
 
     // 自动切换到下一个场景
-    if (state.isAutoPlaying && state.currentPage === 'store' && state.currentAgent.store === 'inspection') {
+    if (state.isAutoPlaying && state.currentPage === 'store' && state.currentAgent.store === 'inspection' && myId === inspectionDemoId) {
         await sleep(6500);  // 等待弹窗倒计时关闭(5s) + 缓冲
-        if (state.isAutoPlaying && state.demoRunning) {
+        if (state.isAutoPlaying && state.demoRunning && myId === inspectionDemoId) {
             nextInspectionScene();
         }
     }
