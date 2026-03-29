@@ -188,6 +188,21 @@ const CHATBI_RESPONSES = {
             <p style="font-size: 12px;">2. 低谷时段（14:00-16:00）可减少至2人值班</p>`,
         chart: 'efficiency',
         insight: { type: 'success', icon: SVG_ICONS.trendUp, title: '优化机会', text: '调整排班后预计人效可提升15%' }
+    },
+    '最近有哪些经营异常需要关注？': {
+        response: `<p><strong>${SVG_ICONS.search} 经营诊断报告</strong></p>
+            <p style="margin: 8px 0; font-size: 13px;">AI已完成全维度经营健康度扫描，发现以下异常：</p>
+            <div style="background: rgba(248,81,73,0.1); padding: 10px; border-radius: 8px; margin: 8px 0; font-size: 12px;">
+                <p>${SVG_ICONS.warning} <strong>严重</strong>：杭州西湖店连续3天客单价下降22%</p>
+                <p>${SVG_ICONS.warning} <strong>警告</strong>：华东区周末晚间时段出杯量骤降30%</p>
+                <p>${SVG_ICONS.store} <strong>关注</strong>：南京新街口店好评率从95%降至87%</p>
+            </div>
+            <p style="color: var(--accent-blue); margin-top: 12px;"><strong>${SVG_ICONS.bulb} AI改进建议：</strong></p>
+            <p style="font-size: 12px;">1. 西湖店建议上架新品组合套餐，拉升客单价</p>
+            <p style="font-size: 12px;">2. 周末晚班增加1名熟练员工，提升出品速度</p>
+            <p style="font-size: 12px;">3. 南京店安排神秘顾客暗访，排查服务问题</p>`,
+        chart: 'diagnosis',
+        insight: { type: 'warning', icon: SVG_ICONS.warning, title: '经营诊断', text: '发现3项经营异常，其中1项严重，建议优先处理' }
     }
 };
 
@@ -920,11 +935,6 @@ function updateQuickQuestions(scenario) {
             { text: '品类分析', question: '哪个品类最近销量增长最快？' },
             { text: '时段分析', question: '门店的销售高峰时段是什么时候？' }
         ],
-        supply: [
-            { text: '库存预警', question: '哪些物料库存即将告警？' },
-            { text: '物料预测', question: '预测明天各门店的柠檬需求量，给出补货建议' },
-            { text: '损耗分析', question: '本周物料损耗情况如何？' }
-        ],
         efficiency: [
             { text: '人效分析', question: '分析华东区门店的人效情况，如何优化排班？' },
             { text: '排班建议', question: '高峰期如何优化排班？' },
@@ -957,8 +967,8 @@ async function runChatBIDemo() {
 
     const scenarios = [
         { question: '哪些门店本周销售下滑需要关注？', scenario: 'sales' },
-        { question: '预测明天各门店的柠檬需求量，给出补货建议', scenario: 'supply' },
-        { question: '分析华东区门店的人效情况，如何优化排班？', scenario: 'efficiency' }
+        { question: '分析华东区门店的人效情况，如何优化排班？', scenario: 'efficiency' },
+        { question: '最近有哪些经营异常需要关注？', scenario: 'diagnosis' }
     ];
 
     for (let i = 0; i < scenarios.length; i++) {
@@ -987,8 +997,8 @@ function resetChatBI() {
             <div class="message-content">
                 您好！我是经营助手Agent。我可以帮您：<br>
                 • 分析销售数据，发现增长机会<br>
-                • 优化物料配送，降低损耗成本<br>
                 • 提升人效，优化排班方案<br>
+                • 经营诊断，发现异常并给出建议<br>
                 请问有什么需要分析的？
             </div>
         </div>
@@ -1118,6 +1128,30 @@ function showChatBIChart(chartType) {
                             <div class="suggest-item"><span class="suggest-icon">${SVG_ICONS.clock}</span><span class="suggest-text">高峰+2人</span></div>
                             <div class="suggest-item"><span class="suggest-icon">${SVG_ICONS.trendDown}</span><span class="suggest-text">低谷-1人</span></div>
                             <div class="suggest-item highlight"><span class="suggest-icon">${SVG_ICONS.coin}</span><span class="suggest-text">月省¥28K</span></div>
+                        </div>
+                    </div>
+                </div>`
+        },
+        diagnosis: {
+            title: '经营健康度诊断',
+            html: `
+                <div class="chart-content">
+                    <div class="diagnosis-chart">
+                        <div class="diagnosis-scores">
+                            <div class="score-ring">
+                                <svg viewBox="0 0 100 100" width="100" height="100">
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border-color)" stroke-width="6"/>
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="var(--accent-orange)" stroke-width="6" stroke-dasharray="220 264" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                                    <text x="50" y="46" text-anchor="middle" fill="var(--text-primary)" font-size="22" font-weight="700">87.5</text>
+                                    <text x="50" y="62" text-anchor="middle" fill="var(--text-secondary)" font-size="9">健康度</text>
+                                </svg>
+                            </div>
+                            <div class="score-details">
+                                <div class="score-item"><span class="score-dim">销售指标</span><div class="score-bar"><div class="score-fill" style="width:78%;background:var(--accent-blue)"></div></div><span class="score-val">78</span></div>
+                                <div class="score-item"><span class="score-dim">人效指标</span><div class="score-bar"><div class="score-fill" style="width:85%;background:var(--accent-green)"></div></div><span class="score-val">85</span></div>
+                                <div class="score-item"><span class="score-dim">服务质量</span><div class="score-bar"><div class="score-fill" style="width:91%;background:var(--accent-purple)"></div></div><span class="score-val">91</span></div>
+                                <div class="score-item"><span class="score-dim">客户满意度</span><div class="score-bar"><div class="score-fill" style="width:88%;background:var(--accent-orange)"></div></div><span class="score-val">88</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>`
