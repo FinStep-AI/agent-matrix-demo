@@ -449,8 +449,10 @@ function navigateToPage(pageName) {
         const page = document.getElementById(pageId);
         if (page) {
             page.classList.add('active');
-            // 启动该页面的演示
-            startPageDemo(pageName);
+            // 仅在非全局演示时启动页面独立演示
+            if (!state.fullDemoRunning) {
+                startPageDemo(pageName);
+            }
         }
     }
 }
@@ -1344,6 +1346,9 @@ function bindConsoleControls() {
 
     if (playBtn) {
         playBtn.addEventListener('click', () => {
+            // 用户点击时解锁音频（浏览器autoplay策略要求）
+            unlockAudio();
+
             if (state.isPaused) {
                 // Resume
                 state.isPaused = false;
@@ -2296,6 +2301,25 @@ async function runSupplyChainDemo() {
 // =========================================
 // 统一演示控制台
 // =========================================
+
+// 解锁浏览器音频autoplay限制（需在用户点击事件内调用）
+let audioUnlocked = false;
+function unlockAudio() {
+    if (audioUnlocked) return;
+    const narration = document.getElementById('narrationAudio');
+    const bgm = document.getElementById('bgMusic');
+    // 播放一个静音的极短音频来解锁
+    if (narration) {
+        narration.muted = true;
+        narration.play().then(() => { narration.pause(); narration.muted = state.isMuted; narration.currentTime = 0; }).catch(() => {});
+    }
+    if (bgm) {
+        bgm.muted = true;
+        bgm.play().then(() => { bgm.pause(); bgm.muted = state.isMuted; bgm.currentTime = 0; }).catch(() => {});
+    }
+    audioUnlocked = true;
+}
+
 function updateConsoleUI(stepLabel, progress) {
     const fill = document.getElementById('consoleProgressFill');
     const text = document.getElementById('consoleProgressText');
@@ -2328,46 +2352,58 @@ async function playNarration(key) {
     updateConsoleUI(script.label, (state.currentStep / state.totalSteps) * 100);
     showSubtitle(script.text);
 
-    if (!state.isMuted) {
-        try {
-            const resp = await fetch('http://localhost:3001/api/tts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: script.text,
-                    role: 'narrator',
-                    lang: 'zh',
-                    speed: 12
-                })
-            });
-            if (resp.ok) {
-                const blob = await resp.blob();
-                const url = URL.createObjectURL(blob);
-                const audio = document.getElementById('narrationAudio');
-                if (audio) {
-                    audio.src = url;
-                    audio.muted = state.isMuted;
-                    await audio.play().catch(() => {});
-                    // Wait for audio to finish or timeout
+    // 尝试TTS播放（无论是否静音都获取音频，静音时仅不播放）
+    let audioPlayed = false;
+    try {
+        const resp = await fetch('http://localhost:3001/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                text: script.text,
+                role: 'narrator',
+                lang: 'zh',
+                speed: 12
+            })
+        });
+        if (resp.ok && !state.isMuted) {
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+            const audio = document.getElementById('narrationAudio');
+            if (audio) {
+                audio.src = url;
+                audio.load();
+                audio.muted = false;
+                audio.playbackRate = Math.min(state.speedMultiplier, 2);
+                try {
+                    await audio.play();
+                    audioPlayed = true;
+                    // 等待音频播完或超时
                     await new Promise(resolve => {
-                        const onEnd = () => { audio.removeEventListener('ended', onEnd); resolve(); };
+                        const cleanup = () => {
+                            audio.removeEventListener('ended', onEnd);
+                            audio.removeEventListener('error', onEnd);
+                            clearTimeout(timer);
+                            resolve();
+                        };
+                        const onEnd = cleanup;
                         audio.addEventListener('ended', onEnd);
-                        // Fallback timeout based on text length
-                        setTimeout(resolve, Math.max(script.text.length * 180 / state.speedMultiplier, 3000));
+                        audio.addEventListener('error', onEnd);
+                        const timer = setTimeout(cleanup, Math.max(script.text.length * 200 / state.speedMultiplier, 4000));
                     });
                     URL.revokeObjectURL(url);
+                } catch (playErr) {
+                    // play() rejected — 浏览器可能阻止了autoplay
+                    URL.revokeObjectURL(url);
                 }
-            } else {
-                // TTS unavailable, just wait based on text length
-                await sleep(script.text.length * 150);
             }
-        } catch (e) {
-            // TTS server not running, just show subtitle and wait
-            await sleep(script.text.length * 150);
         }
-    } else {
-        // Muted mode: wait proportional to text
-        await sleep(script.text.length * 150);
+    } catch (e) {
+        // TTS服务未运行
+    }
+
+    // 如果没播出声音，按文字长度等待
+    if (!audioPlayed) {
+        await sleep(script.text.length * 120);
     }
 
     await sleep(500);
