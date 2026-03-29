@@ -313,7 +313,7 @@ const FRANCHISE_CONVERSATIONS = [
     }
 ];
 
-const SERVICE_TAB_ORDER = ['policy', 'delivery', 'operation'];
+const SERVICE_TAB_ORDER = ['delivery', 'operation'];
 let serviceTabIndex = 0;
 let franchiseConvoIndex = 0;
 
@@ -872,7 +872,7 @@ async function runInspectionDemo() {
 
     // 自动切换到下一个场景
     if (state.isAutoPlaying && state.currentPage === 'store' && state.currentAgent.store === 'inspection' && myId === inspectionDemoId) {
-        await sleep(6500);  // 等待弹窗倒计时关闭(5s) + 缓冲
+        await sleep(4000);  // 等待弹窗倒计时关闭(3s) + 缓冲
         if (state.isAutoPlaying && state.demoRunning && myId === inspectionDemoId) {
             nextInspectionScene();
         }
@@ -1157,7 +1157,7 @@ function showInspectionModal(config) {
     modal.classList.add('active');
 
     // 倒计时自动关闭
-    let countdown = 5;
+    let countdown = 3;
     const countdownNum = document.getElementById('countdownNum');
     if (countdownNum) countdownNum.textContent = countdown;
 
@@ -2334,7 +2334,7 @@ async function runPeopleDemo() {
         switchPeopleTab('franchise');
         await sleep(600);
 
-        for (let i = 0; i < 2 && i < FRANCHISE_CONVERSATIONS.length && state.demoRunning; i++) {
+        for (let i = 1; i < 3 && i < FRANCHISE_CONVERSATIONS.length && state.demoRunning; i++) {
             await runFranchiseConversation(i);
             if (!state.demoRunning) break;
         }
@@ -2804,9 +2804,9 @@ async function runFullDemo() {
         await playNarration('service_demo');
         if (!ok()) break;
 
-        // Run 1 service conversation
+        // Run 1 service conversation (skip first scenario)
         const serviceKeys = Object.keys(SERVICE_CONVERSATIONS);
-        for (let i = 0; i < 1 && ok(); i++) {
+        for (let i = 1; i < 2 && ok(); i++) {
             state.demoRunning = true;
             await runServiceConversation(serviceKeys[i % serviceKeys.length]);
             await sleep(1500);
@@ -2824,8 +2824,8 @@ async function runFullDemo() {
         await playNarration('franchise_demo');
         if (!ok()) break;
 
-        // Run 1 franchise conversation
-        for (let i = 0; i < 1 && ok(); i++) {
+        // Run 1 franchise conversation (skip first scenario)
+        for (let i = 1; i < 2 && ok(); i++) {
             state.demoRunning = true;
             await runFranchiseConversation(i % FRANCHISE_CONVERSATIONS.length);
             await sleep(1500);
@@ -2878,7 +2878,8 @@ async function runFullDemo() {
         if (!ok()) break;
         await runResultPhase(inspConfig);
         if (!ok()) break;
-        await sleep(2000);
+        await sleep(3500);  // 等待弹窗倒计时关闭(3s) + 缓冲
+        closeInspectionModal();
 
         if (inspTab) inspTab.classList.remove('demo-active');
         if (!ok()) break;
