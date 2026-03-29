@@ -313,7 +313,7 @@ const FRANCHISE_CONVERSATIONS = [
     }
 ];
 
-const SERVICE_TAB_ORDER = ['policy', 'delivery', 'operation', 'daily', 'training', 'complaint'];
+const SERVICE_TAB_ORDER = ['policy', 'delivery', 'operation'];
 let serviceTabIndex = 0;
 let franchiseConvoIndex = 0;
 
@@ -1300,8 +1300,7 @@ async function runChatBIDemo() {
 
     const zhScenarios = [
         { question: '哪些门店本周销售下滑需要关注？', scenario: 'sales' },
-        { question: '分析华东区门店的人效情况，如何优化排班？', scenario: 'efficiency' },
-        { question: '最近有哪些经营异常需要关注？', scenario: 'diagnosis' }
+        { question: '分析华东区门店的人效情况，如何优化排班？', scenario: 'efficiency' }
     ];
     const enScenarios = (typeof I18N_DATA !== 'undefined' && I18N_DATA.CHATBI_DYNAMIC) ? I18N_DATA.CHATBI_DYNAMIC.demoScenarios : null;
     const scenarios = (getLang() === 'en' && enScenarios) ? enScenarios : zhScenarios;
@@ -2335,7 +2334,7 @@ async function runPeopleDemo() {
         switchPeopleTab('franchise');
         await sleep(600);
 
-        for (let i = 0; i < FRANCHISE_CONVERSATIONS.length && state.demoRunning; i++) {
+        for (let i = 0; i < 2 && i < FRANCHISE_CONVERSATIONS.length && state.demoRunning; i++) {
             await runFranchiseConversation(i);
             if (!state.demoRunning) break;
         }
@@ -2805,9 +2804,9 @@ async function runFullDemo() {
         await playNarration('service_demo');
         if (!ok()) break;
 
-        // Run 2 service conversations
+        // Run 1 service conversation
         const serviceKeys = Object.keys(SERVICE_CONVERSATIONS);
-        for (let i = 0; i < 2 && ok(); i++) {
+        for (let i = 0; i < 1 && ok(); i++) {
             state.demoRunning = true;
             await runServiceConversation(serviceKeys[i % serviceKeys.length]);
             await sleep(1500);
@@ -2825,8 +2824,8 @@ async function runFullDemo() {
         await playNarration('franchise_demo');
         if (!ok()) break;
 
-        // Run 2 franchise conversations
-        for (let i = 0; i < 2 && ok(); i++) {
+        // Run 1 franchise conversation
+        for (let i = 0; i < 1 && ok(); i++) {
             state.demoRunning = true;
             await runFranchiseConversation(i % FRANCHISE_CONVERSATIONS.length);
             await sleep(1500);
@@ -2896,9 +2895,9 @@ async function runFullDemo() {
         await playNarration('chatbi_demo');
         if (!ok()) break;
 
-        // Run 2 ChatBI questions
+        // Run 1 ChatBI question
         state.demoRunning = true;
-        for (let i = 0; i < 2 && ok(); i++) {
+        for (let i = 0; i < 1 && ok(); i++) {
             const responses = Object.values(CHATBI_RESPONSES);
             await simulateChatBIQuestion(responses[i % responses.length]);
             await sleep(2000);
